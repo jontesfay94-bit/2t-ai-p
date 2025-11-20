@@ -1,40 +1,66 @@
 const express = require('express');
 const cors = require('cors');
+const axios = require('axios');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// Enable CORS so your frontend can communicate
 app.use(cors());
-app.use(express.json());
-app.use(express.static('public'));
 
-// Serve the main application
-app.get('/', (req, res) => {
+// Serve the static HTML file from the "public" folder
+app.use(express.static(path.join(__dirname, 'public')));
+
+// BASE URL for Binance API
+const BINANCE_BASE = 'https://api.binance.com/api/v3';
+
+// --- PROXY ROUTES (The AI fetches data from here) ---
+
+// 1. Get Ticker Price (e.g., BTC Price)
+app.get('/proxy/ticker', async (req, res) => {
+    try {
+        const { symbol } = req.query;
+        const response = await axios.get(`${BINANCE_BASE}/ticker/price?symbol=${symbol}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch price' });
+    }
+});
+
+// 2. Get 24hr Stats (Volume, Change)
+app.get('/proxy/24hr', async (req, res) => {
+    try {
+        const { symbol } = req.query;
+        const response = await axios.get(`${BINANCE_BASE}/ticker/24hr?symbol=${symbol}`);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+});
+
+// 3. Get Klines (Candlesticks for Analysis)
+app.get('/proxy/klines', async (req, res) => {
+    try {
+        const { symbol, interval, limit } = req.query;
+        const response = await axios.get(`${BINANCE_BASE}/klines`, {
+            params: {
+                symbol: symbol,
+                interval: interval || '1h',
+                limit: limit || 500
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch klines' });
+    }
+});
+
+// Fallback: Serve index.html for any other route
+app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({ status: 'OK', message: 'Trading AI is running' });
-});
-
-// API endpoint for server time (optional enhancement)
-app.get('/api/time', (req, res) => {
-    res.json({ 
-        serverTime: Date.now(),
-        timezone: 'UTC'
-    });
-});
-
-// Start server
 app.listen(PORT, () => {
-    console.log(`Trading AI Server running on port ${PORT}`);
-    console.log(`Access the app at: http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
 });
-
-
-
-
-
