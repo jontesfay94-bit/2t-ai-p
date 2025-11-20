@@ -3,121 +3,83 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Pro SMC Trading Engine</title>
-    <meta name="description" content="Professional crypto trading predictions using Real Smart Money Concepts">
+    <title>TwoT AI - Adaptive Learning Engine</title>
     <style>
-        /* --- CORE STYLES --- */
+        /* --- DARK THEME --- */
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --text: #f8fafc; --muted: #94a3b8; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #f8fafc;
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         
-        /* --- HEADER --- */
-        header { background: rgba(30, 41, 59, 0.9); padding: 15px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .logo h1 {
-            font-size: 1.5rem;
-            background: linear-gradient(90deg, #3b82f6, #10b981);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+        header { background: rgba(30, 41, 59, 0.95); padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        h1 { background: linear-gradient(90deg, var(--primary), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
+
         .controls { display: flex; gap: 10px; flex-wrap: wrap; }
-        
-        /* --- BUTTONS & INPUTS --- */
-        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s; font-size: 0.9rem; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-warning { background: #f59e0b; color: white; }
-        .btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
-        select { padding: 10px; border-radius: 6px; background: #1e293b; color: #f8fafc; border: 1px solid #475569; }
+        select, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: var(--card); color: white; font-weight: 600; cursor: pointer; }
+        .btn-primary { background: var(--primary); border: none; }
+        .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); border: none; font-size: 0.8rem; }
 
-        /* --- CARDS --- */
-        .card {
-            background: rgba(30, 41, 59, 0.7);
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 20px;
-        }
-        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
-        .card-title { font-size: 1.2rem; font-weight: 600; }
-
-        /* --- PREDICTION CARDS --- */
-        .predictions-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; }
-        .prediction-card {
-            background: rgba(15, 23, 42, 0.8);
-            border-radius: 8px;
-            padding: 15px;
-            border-left: 4px solid #64748b;
-            transition: all 0.3s;
-        }
-        .prediction-card.buy { border-left-color: #10b981; background: rgba(16, 185, 129, 0.1); }
-        .prediction-card.sell { border-left-color: #ef4444; background: rgba(239, 68, 68, 0.1); }
-        .prediction-card.hold { border-left-color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
-        
-        .prediction-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .prediction-type { font-weight: 800; font-size: 1.2rem; text-transform: uppercase; }
-        .buy .prediction-type { color: #10b981; }
-        .sell .prediction-type { color: #ef4444; }
-        .hold .prediction-type { color: #f59e0b; }
-        
-        .prediction-price { font-size: 1.3rem; font-weight: 700; margin: 10px 0; }
-        .prediction-details { font-size: 0.9rem; color: #cbd5e1; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 5px; margin-bottom: 10px; }
-        .prediction-reasoning { font-size: 0.85rem; color: #94a3b8; font-style: italic; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 8px; }
-
-        /* --- PROGRESS & METRICS --- */
-        .progress-container { margin-top: 10px; }
-        .progress-bar { height: 6px; background: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden; }
-        .progress-fill { height: 100%; background: #3b82f6; border-radius: 3px; transition: width 0.3s; }
-        
-        .live-price { font-size: 1.5rem; font-weight: bold; text-align: center; padding: 15px; background: rgba(255,255,255,0.05); border-radius: 8px; margin-bottom: 15px; }
-        .metric-card { display: flex; justify-content: space-between; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; margin-bottom: 5px; }
-        
-        /* --- TABS --- */
-        .tabs { display: flex; border-bottom: 1px solid rgba(255, 255, 255, 0.1); margin-bottom: 20px; }
-        .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; color: #94a3b8; }
-        .tab.active { border-bottom-color: #3b82f6; color: #3b82f6; font-weight: bold; }
+        .tabs { display: flex; gap: 20px; margin: 20px 0; border-bottom: 1px solid #334155; }
+        .tab { padding: 10px 0; cursor: pointer; color: var(--muted); position: relative; }
+        .tab.active { color: var(--primary); font-weight: bold; }
+        .tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); }
         .tab-content { display: none; }
-        .tab-content.active { display: block; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
-        /* --- UTILS --- */
-        .loading { text-align: center; padding: 20px; color: #94a3b8; }
+        .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
         
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header-content { flex-direction: column; text-align: center; }
-            .controls { width: 100%; justify-content: center; }
-        }
+        /* SIGNAL BOX */
+        .signal-box { border-left: 5px solid var(--muted); background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-top: 20px; }
+        .signal-box.BUY { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
+        .signal-box.SELL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
+        .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .signal-type { font-size: 1.5rem; font-weight: 900; }
+        .BUY .signal-type { color: var(--success); }
+        .SELL .signal-type { color: var(--danger); }
+
+        /* PROJECTION TABLE */
+        .projection-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 0.9rem; }
+        .projection-table th { text-align: left; color: var(--muted); padding: 5px; border-bottom: 1px solid #475569; }
+        .projection-table td { padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .trend-up { color: var(--success); }
+        .trend-down { color: var(--danger); }
+
+        /* FEEDBACK */
+        .feedback-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
+        .btn-check { flex: 1; padding: 8px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; opacity: 0.8; }
+        .btn-check:hover { opacity: 1; }
+        .btn-win { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .btn-loss { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* LEARNING METRICS */
+        .learning-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); margin-left: 5px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { text-align: center; color: var(--muted); font-style: italic; padding: 20px; }
     </style>
 </head>
 <body>
     <header>
         <div class="container">
             <div class="header-content">
-                <div class="logo">
-                    <h1>🧠 TwoT AI - Pro Trading</h1>
-                </div>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:#94a3b8;">Adaptive Learning</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
                         <option value="ETHUSDT">ETH/USDT</option>
-                        <option value="BNBUSDT">BNB/USDT</option>
                         <option value="SOLUSDT">SOL/USDT</option>
-                        <option value="XRPUSDT">XRP/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
                     </select>
                     <select id="timeframeSelect">
-                        <option value="15m">15 Minutes (Day)</option>
-                        <option value="1h" selected>1 Hour (Swing)</option>
-                        <option value="4h">4 Hours (Macro)</option>
+                        <option value="1m">1 Minute</option>
+                        <option value="3m">3 Minutes</option>
+                        <option value="5m">5 Minutes</option>
+                        <option value="1h" selected>1 Hour</option>
+                        <option value="1d">1 Day</option>
                     </select>
-                    <button id="startBtn" class="btn btn-primary">Analyze Market</button>
-                    <button id="resetBtn" class="btn btn-warning">Reset</button>
+                    <button id="analyzeBtn" class="btn-primary">⚡ Analyze & Learn</button>
                 </div>
             </div>
         </div>
@@ -125,54 +87,45 @@
 
     <div class="container">
         <div class="tabs">
-            <div class="tab active" data-tab="dashboard">Live Dashboard</div>
-            <div class="tab" data-tab="history">Signal History</div>
+            <div class="tab active" data-tab="dashboard">Live Analysis</div>
+            <div class="tab" data-tab="performance">AI Memory & Stats</div>
+            <div class="tab" data-tab="history">History</div>
         </div>
 
         <!-- DASHBOARD TAB -->
         <div id="dashboardTab" class="tab-content active">
-            <!-- Market Data Card -->
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Market Status</h2>
-                    <div id="connectionStatus" style="font-size: 0.8rem; color: #94a3b8;">Initializing Connection...</div>
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>Market Status</h3>
+                    <span id="connectionStatus" style="font-size:0.8rem; color:#f59e0b;">Connecting...</span>
                 </div>
-                <div id="livePrice" class="live-price">Loading...</div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                    <div class="metric-card">
-                        <span>Trend (EMA200)</span>
-                        <span id="marketTrend" style="font-weight: bold;">-</span>
-                    </div>
-                    <div class="metric-card">
-                        <span>24h Vol</span>
-                        <span id="volume24h">-</span>
-                    </div>
-                    <div class="metric-card">
-                        <span>24h Change</span>
-                        <span id="change24h">-</span>
-                    </div>
-                    <div class="metric-card">
-                        <span>SMC Structure</span>
-                        <span id="marketStructure">-</span>
-                    </div>
-                </div>
+                <h2 id="livePrice" style="margin-top:10px;">---</h2>
             </div>
 
-            <!-- Predictions Card -->
+            <div id="mainOutput">
+                <div class="card loading">
+                    Select timeframe and click "Analyze" to generate predictions.
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE TAB -->
+        <div id="performanceTab" class="tab-content">
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">AI Logic Analysis</h2>
+                <h3>AI Learning Weights (Brain)</h3>
+                <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">
+                    The AI adjusts these weights based on your feedback. Higher weight (>1.0) means the strategy is currently winning.
+                </p>
+                <div id="learningWeightsDisplay">
+                    <!-- JS populates this -->
                 </div>
-
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div id="analysisProgress" class="progress-fill" style="width: 0%"></div>
-                    </div>
-                    <div id="progressText" style="text-align: center; margin-top: 5px; font-size: 0.8rem; color: #94a3b8;">Waiting for user command...</div>
-                </div>
-
-                <div id="predictionContainer" style="margin-top: 20px;">
-                    <div class="loading">Click "Analyze Market" to run SMC algorithms.</div>
+            </div>
+            <div class="card">
+                <h3>Global Stats</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; text-align:center; gap:10px;">
+                    <div>Wins: <strong id="totalWins" style="color:var(--success)">0</strong></div>
+                    <div>Losses: <strong id="totalLosses" style="color:var(--danger)">0</strong></div>
+                    <div>Win Rate: <strong id="winRate">0%</strong></div>
                 </div>
             </div>
         </div>
@@ -180,391 +133,392 @@
         <!-- HISTORY TAB -->
         <div id="historyTab" class="tab-content">
             <div class="card">
-                <div class="card-header">
-                    <h2 class="card-title">Signal History</h2>
-                    <button id="clearHistoryBtn" class="btn btn-warning" style="padding: 5px 10px; font-size: 0.8rem;">Clear</button>
+                <div style="display:flex; justify-content:space-between;">
+                    <h3>Past Signals</h3>
+                    <button onclick="app.clearHistory()" class="btn-danger">Clear Memory</button>
                 </div>
-                <div id="historyContainer">
-                    <div class="loading">No signals generated yet.</div>
-                </div>
+                <div id="historyList" style="margin-top:15px;"></div>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================================
-        // PROFESSIONAL SMC TRADING ENGINE (DETERMINISTIC & LOGICAL)
+        // TwoT AI - ADAPTIVE LEARNING ENGINE
         // ============================================================
-        class AdvancedTradingAI {
+        class TwoTEngine {
             constructor() {
                 this.symbol = 'BTCUSDT';
                 this.timeframe = '1h';
-                this.history = this.loadFromStorage('history') || [];
-                this.isAnalyzing = false;
-                
-                // Real Market Data Containers
                 this.livePrice = 0;
                 
+                // Load State
+                this.history = JSON.parse(localStorage.getItem('twot_history')) || [];
+                this.stats = JSON.parse(localStorage.getItem('twot_stats')) || { wins: 0, losses: 0 };
+                
+                // LEARNING MODEL (The Brain)
+                // Weights start at 1.0. Win = +0.1, Loss = -0.1
+                this.learningWeights = JSON.parse(localStorage.getItem('twot_weights')) || {
+                    'RSI_Oversold': 1.0,
+                    'RSI_Overbought': 1.0,
+                    'FVG_Bullish': 1.0,
+                    'FVG_Bearish': 1.0,
+                    'Trend_Continuation': 1.0,
+                    'Reversal': 1.0
+                };
+
                 this.init();
             }
 
             async init() {
-                this.setupEventListeners();
+                this.setupUI();
+                this.renderLearningWeights();
+                this.renderStats();
+                this.renderHistory();
                 await this.connectToServer();
             }
 
-            // ============ DATA FETCHING (RELATIVE PATHS) ============
+            // --- SERVER & DATA ---
             async connectToServer() {
                 try {
-                    document.getElementById('connectionStatus').textContent = 'Connecting to Server...';
-                    
-                    // Initial Data Fetch to wake up server
-                    await this.fetchLivePrice();
-                    await this.fetch24hrStats();
-                    
-                    document.getElementById('connectionStatus').textContent = 'Connected to TwoT Server ✅';
+                    document.getElementById('connectionStatus').textContent = 'Connecting...';
+                    await this.getLivePrice();
+                    document.getElementById('connectionStatus').textContent = 'Connected ✅';
                     document.getElementById('connectionStatus').style.color = '#10b981';
-                    
-                    // Start polling for price updates
-                    this.startLiveUpdates();
-                } catch (error) {
-                    console.error("Connection Error:", error);
-                    document.getElementById('connectionStatus').textContent = 'Server Sleeping - Please Wait...';
+                    setInterval(() => this.getLivePrice(), 5000);
+                } catch (e) {
                     setTimeout(() => this.connectToServer(), 3000);
                 }
             }
 
-            async fetchLivePrice() {
+            async getLivePrice() {
                 try {
-                    // Uses relative path to index.js proxy
-                    const response = await fetch(`/proxy/ticker?symbol=${this.symbol}`);
-                    if(!response.ok) throw new Error("Network response was not ok");
-                    const data = await response.json();
+                    const res = await fetch(`/proxy/ticker?symbol=${this.symbol}`);
+                    const data = await res.json();
                     this.livePrice = parseFloat(data.price);
-                    this.updateLivePriceDisplay();
-                } catch (e) { console.log("Price tick failed"); }
-            }
-
-            async fetch24hrStats() {
-                try {
-                    const response = await fetch(`/proxy/24hr?symbol=${this.symbol}`);
-                    const data = await response.json();
-                    
-                    const vol = parseFloat(data.quoteVolume);
-                    document.getElementById('volume24h').textContent = '$' + (vol / 1000000).toFixed(2) + 'M';
-                    
-                    const change = parseFloat(data.priceChangePercent);
-                    const changeEl = document.getElementById('change24h');
-                    changeEl.textContent = change.toFixed(2) + '%';
-                    changeEl.style.color = change >= 0 ? '#10b981' : '#ef4444';
+                    document.getElementById('livePrice').innerText = `${this.symbol}: $${this.livePrice.toFixed(2)}`;
                 } catch (e) {}
             }
 
-            async fetchKlineData(limit = 500) {
-                const response = await fetch(
-                    `/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=${limit}`
-                );
-                const data = await response.json();
-                return data.map(k => ({
-                    time: k[0],
-                    open: parseFloat(k[1]),
-                    high: parseFloat(k[2]),
-                    low: parseFloat(k[3]),
-                    close: parseFloat(k[4]),
-                    volume: parseFloat(k[5])
-                }));
-            }
-
-            // ============ TECHNICAL INDICATORS (MATH) ============
-            
-            calculateATR(klineData, period = 14) {
-                let trSum = 0;
-                for(let i = klineData.length - period; i < klineData.length; i++) {
-                    const high = klineData[i].high;
-                    const low = klineData[i].low;
-                    const prevClose = klineData[i-1].close;
-                    const tr = Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose));
-                    trSum += tr;
-                }
-                return trSum / period;
-            }
-
-            calculateRSI(data, period = 14) {
-                let gains = 0, losses = 0;
-                for (let i = data.length - period; i < data.length; i++) {
-                    const diff = data[i].close - data[i-1].close;
-                    if (diff >= 0) gains += diff; else losses -= diff;
-                }
-                const avgGain = gains / period;
-                const avgLoss = losses / period;
-                const rs = avgGain / (avgLoss || 1); 
-                return 100 - (100 / (1 + rs));
-            }
-
-            calculateEMA(data, period) {
-                const k = 2 / (period + 1);
-                let ema = data[0].close;
-                for (let i = 1; i < data.length; i++) {
-                    ema = (data[i].close * k) + (ema * (1 - k));
-                }
-                return ema;
-            }
-
-            // ============ SMC LOGIC ============
-            
-            detectMarketStructure(data) {
-                let swingHighs = [];
-                let swingLows = [];
-                const lookback = 2;
-
-                for(let i = lookback; i < data.length - lookback; i++) {
-                    const curr = data[i];
-                    let isHigh = true;
-                    for(let j = 1; j <= lookback; j++) {
-                        if(data[i-j].high > curr.high || data[i+j].high > curr.high) isHigh = false;
-                    }
-                    if(isHigh) swingHighs.push({ price: curr.high, index: i });
-
-                    let isLow = true;
-                    for(let j = 1; j <= lookback; j++) {
-                        if(data[i-j].low < curr.low || data[i+j].low < curr.low) isLow = false;
-                    }
-                    if(isLow) swingLows.push({ price: curr.low, index: i });
-                }
-
-                const lastHigh = swingHighs[swingHighs.length - 1]?.price || 0;
-                const lastLow = swingLows[swingLows.length - 1]?.price || 0;
-                const prevHigh = swingHighs[swingHighs.length - 2]?.price || 0;
-                const prevLow = swingLows[swingLows.length - 2]?.price || 0;
-
-                let structure = 'Ranging';
-                if (lastHigh > prevHigh && lastLow > prevLow) structure = 'Bullish (HH/HL)';
-                if (lastHigh < prevHigh && lastLow < prevLow) structure = 'Bearish (LH/LL)';
-
-                return { structure, swingHigh: lastHigh, swingLow: lastLow };
-            }
-
-            findFairValueGaps(data) {
-                const fvgs = [];
-                for(let i = data.length - 50; i < data.length - 1; i++) {
-                    const prev = data[i-1]; 
-                    const next = data[i+1]; 
-                    if (next.low > prev.high) fvgs.push({ type: 'Bullish', top: next.low, bottom: prev.high });
-                    if (next.high < prev.low) fvgs.push({ type: 'Bearish', top: prev.low, bottom: next.high });
-                }
-                return fvgs;
-            }
-
-            // ============ MAIN ANALYSIS ============
-            async analyzeMarket() {
-                if (this.isAnalyzing) return;
-                this.isAnalyzing = true;
+            // --- MAIN ANALYSIS ---
+            async runAnalysis() {
+                const btn = document.getElementById('analyzeBtn');
+                const output = document.getElementById('mainOutput');
                 
-                document.getElementById('startBtn').textContent = 'Calculating Indicators...';
-                document.getElementById('startBtn').disabled = true;
-                this.updateProgress(10);
+                btn.disabled = true;
+                btn.innerText = 'Analyzing & Applying Learning Weights...';
+                output.innerHTML = '<div class="card loading">Processing Market Data...</div>';
 
                 try {
-                    const data = await this.fetchKlineData(500);
-                    this.updateProgress(30);
-                    
-                    const currentPrice = data[data.length - 1].close;
-                    const ema200 = this.calculateEMA(data, 200);
-                    const rsi = this.calculateRSI(data);
-                    const atr = this.calculateATR(data);
-                    const structureData = this.detectMarketStructure(data);
-                    const fvgs = this.findFairValueGaps(data);
-                    
-                    this.updateProgress(60);
+                    // 1. Fetch Data for selected Timeframe
+                    const limit = 200;
+                    const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=${limit}`);
+                    const klines = this.formatKlines(await res.json());
 
-                    const isUptrend = currentPrice > ema200;
-                    const trendText = isUptrend ? 'Bullish (Above EMA200)' : 'Bearish (Below EMA200)';
-                    document.getElementById('marketTrend').textContent = trendText;
-                    document.getElementById('marketTrend').style.color = isUptrend ? '#10b981' : '#ef4444';
-                    document.getElementById('marketStructure').textContent = structureData.structure;
+                    // 2. Calculate Indicators
+                    const rsi = this.calculateRSI(klines);
+                    const fvgs = this.findFVG(klines);
+                    const atr = this.calculateATR(klines);
+                    const ema200 = this.calculateEMA(klines, 200);
+                    const currentPrice = klines[klines.length-1].close;
+                    const trend = currentPrice > ema200 ? 'Bullish' : 'Bearish';
 
-                    // DECISION LOGIC
+                    // 3. GENERATE SIGNAL & APPLY WEIGHTS
                     let signal = 'HOLD';
-                    let confidence = 0;
+                    let strategyUsed = '';
+                    let baseConfidence = 0;
                     let reasoning = [];
+
+                    // --- STRATEGIES ---
                     
-                    if (isUptrend) {
-                        const insideFVG = fvgs.some(gap => gap.type === 'Bullish' && currentPrice <= gap.top && currentPrice >= gap.bottom);
-                        if (insideFVG) {
-                            signal = 'BUY';
-                            confidence = 85;
-                            reasoning.push("Price retesting Bullish FVG");
-                            reasoning.push("Aligned with EMA200 Trend");
-                        } else if (rsi < 40) {
-                            signal = 'BUY';
-                            confidence = 75;
-                            reasoning.push("RSI Oversold in Uptrend (Pullback)");
-                        }
+                    // A. Bullish FVG
+                    const bullFVG = fvgs.find(f => f.type === 'bullish' && currentPrice <= f.top && currentPrice >= f.bottom);
+                    if (bullFVG && trend === 'Bullish') {
+                        signal = 'BUY';
+                        strategyUsed = 'FVG_Bullish';
+                        baseConfidence = 80;
+                        reasoning.push("Price inside Bullish Fair Value Gap");
+                    }
+                    
+                    // B. RSI Oversold
+                    else if (rsi < 30 && trend === 'Bullish') {
+                        signal = 'BUY';
+                        strategyUsed = 'RSI_Oversold';
+                        baseConfidence = 70;
+                        reasoning.push("RSI Oversold in Uptrend");
                     }
 
-                    if (!isUptrend) {
-                        const insideFVG = fvgs.some(gap => gap.type === 'Bearish' && currentPrice >= gap.bottom && currentPrice <= gap.top);
-                        if (insideFVG) {
-                            signal = 'SELL';
-                            confidence = 85;
-                            reasoning.push("Price retesting Bearish FVG");
-                            reasoning.push("Aligned with EMA200 Trend");
-                        } else if (rsi > 60) {
-                            signal = 'SELL';
-                            confidence = 75;
-                            reasoning.push("RSI Overbought in Downtrend");
-                        }
+                    // C. Bearish FVG
+                    else if (fvgs.find(f => f.type === 'bearish' && currentPrice >= f.bottom && currentPrice <= f.top) && trend === 'Bearish') {
+                        signal = 'SELL';
+                        strategyUsed = 'FVG_Bearish';
+                        baseConfidence = 80;
+                        reasoning.push("Price inside Bearish Fair Value Gap");
                     }
 
-                    if (signal === 'HOLD') {
-                        if (currentPrice < structureData.swingLow && rsi > 30) {
-                            signal = 'BUY';
-                            confidence = 60;
-                            reasoning.push("Liquidity Sweep of Swing Low (Reversal)");
-                        } else if (currentPrice > structureData.swingHigh && rsi < 70) {
-                            signal = 'SELL';
-                            confidence = 60;
-                            reasoning.push("Liquidity Sweep of Swing High (Reversal)");
-                        }
+                    // D. RSI Overbought
+                    else if (rsi > 70 && trend === 'Bearish') {
+                        signal = 'SELL';
+                        strategyUsed = 'RSI_Overbought';
+                        baseConfidence = 70;
+                        reasoning.push("RSI Overbought in Downtrend");
                     }
 
-                    this.updateProgress(90);
-                    const prediction = this.createPredictionObject(signal, currentPrice, atr, reasoning, confidence);
-                    this.displayPrediction(prediction);
-                    this.history.unshift(prediction);
-                    this.saveToStorage('history', this.history.slice(0, 50));
-                    this.renderHistory();
-                    this.updateProgress(100);
+                    // 4. APPLY AI LEARNING
+                    let finalConfidence = 0;
+                    if (signal !== 'HOLD') {
+                        // Apply weight: If weight is 1.2, confidence increases by 20%
+                        const weight = this.learningWeights[strategyUsed] || 1.0;
+                        finalConfidence = Math.min(99, Math.round(baseConfidence * weight));
+                        reasoning.push(`AI Weight for ${strategyUsed}: x${weight.toFixed(2)}`);
+                    }
 
-                } catch (error) {
-                    console.error("Analysis Error:", error);
-                    document.getElementById('predictionContainer').innerHTML = `<div class="loading">Error analyzing data. Please try again.</div>`;
+                    // 5. GENERATE FUTURE PROJECTION (Consecutive Predictions)
+                    const projection = this.generateProjection(klines, 5);
+
+                    // 6. OUTPUT RESULT
+                    const result = {
+                        id: Date.now(),
+                        time: new Date().toLocaleString(),
+                        symbol: this.symbol,
+                        timeframe: this.timeframe,
+                        type: signal,
+                        entry: currentPrice,
+                        stop: signal === 'BUY' ? (currentPrice - 2*atr).toFixed(2) : (currentPrice + 2*atr).toFixed(2),
+                        target: signal === 'BUY' ? (currentPrice + 3*atr).toFixed(2) : (currentPrice - 3*atr).toFixed(2),
+                        confidence: finalConfidence,
+                        reasoning: reasoning,
+                        strategy: strategyUsed,
+                        projection: projection,
+                        result: 'Pending'
+                    };
+
+                    this.renderOutput(result);
+
+                    if(signal !== 'HOLD') {
+                        this.history.unshift(result);
+                        localStorage.setItem('twot_history', JSON.stringify(this.history));
+                        this.renderHistory();
+                    }
+
+                } catch (err) {
+                    console.error(err);
+                    output.innerHTML = `<div class="card">Error: ${err.message}</div>`;
                 } finally {
-                    this.isAnalyzing = false;
-                    document.getElementById('startBtn').textContent = 'Analyze Market';
-                    document.getElementById('startBtn').disabled = false;
+                    btn.disabled = false;
+                    btn.innerText = '⚡ Analyze & Learn';
                 }
             }
 
-            createPredictionObject(type, price, atr, reasoning, confidence) {
-                let stopLoss, takeProfit;
-                if (type === 'BUY') {
-                    stopLoss = price - (atr * 2); 
-                    takeProfit = price + (atr * 4); 
-                } else if (type === 'SELL') {
-                    stopLoss = price + (atr * 2);
-                    takeProfit = price - (atr * 4);
-                } else {
-                    stopLoss = 0; takeProfit = 0;
-                    reasoning.push("No high-probability setup detected.");
-                }
+            // --- PROJECTION ENGINE ---
+            generateProjection(klines, steps) {
+                const lastClose = klines[klines.length-1].close;
+                const prevClose = klines[klines.length-5].close; // 5 candles ago
+                const velocity = (lastClose - prevClose) / 5; // Avg movement per candle
+                const atr = this.calculateATR(klines);
+                const lastTime = klines[klines.length-1].time;
+                
+                // Get MS per interval
+                let msPerInterval = 60000; // 1m default
+                if(this.timeframe === '3m') msPerInterval = 180000;
+                if(this.timeframe === '5m') msPerInterval = 300000;
+                if(this.timeframe === '1h') msPerInterval = 3600000;
+                if(this.timeframe === '1d') msPerInterval = 86400000;
 
-                return {
-                    id: Date.now(),
-                    time: new Date().toLocaleString(),
-                    symbol: this.symbol,
-                    type: type,
-                    entry: price.toFixed(2),
-                    stop: stopLoss > 0 ? stopLoss.toFixed(2) : '-',
-                    target: takeProfit > 0 ? takeProfit.toFixed(2) : '-',
-                    rr: type !== 'HOLD' ? '1:2' : '-',
-                    confidence: confidence,
-                    reasoning: reasoning
-                };
+                const projections = [];
+                let projectedPrice = lastClose;
+
+                for(let i=1; i<=steps; i++) {
+                    // Dampen velocity over time (momentum fades)
+                    const dampen = 1 - (i * 0.1); 
+                    const noise = (Math.random() - 0.5) * (atr * 0.2); // Small realistic noise
+                    projectedPrice += (velocity * dampen) + noise;
+                    
+                    // Calculate Time
+                    const nextTime = new Date(lastTime + (i * msPerInterval));
+                    const timeStr = nextTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                    projections.push({
+                        step: i,
+                        time: timeStr,
+                        price: projectedPrice.toFixed(2),
+                        direction: projectedPrice > lastClose ? 'up' : 'down'
+                    });
+                }
+                return projections;
             }
 
-            // ============ UI RENDERING ============
-            displayPrediction(p) {
-                const container = document.getElementById('predictionContainer');
-                container.innerHTML = `
-                    <div class="prediction-card ${p.type.toLowerCase()}">
-                        <div class="prediction-header">
-                            <div class="prediction-type">${p.type} SIGNAL</div>
-                            <div style="background:rgba(0,0,0,0.3); padding:2px 8px; border-radius:4px;">${p.confidence}% Confidence</div>
+            // --- FEEDBACK & LEARNING ---
+            recordFeedback(id, result) {
+                const idx = this.history.findIndex(h => h.id === id);
+                if (idx === -1 || this.history[idx].result !== 'Pending') return;
+
+                const record = this.history[idx];
+                const strategy = record.strategy;
+
+                // UPDATE HISTORY
+                this.history[idx].result = result === 'win' ? 'Win' : 'Loss';
+                localStorage.setItem('twot_history', JSON.stringify(this.history));
+
+                // UPDATE STATS
+                if (result === 'win') this.stats.wins++; else this.stats.losses++;
+                localStorage.setItem('twot_stats', JSON.stringify(this.stats));
+
+                // === UPDATE LEARNING WEIGHTS ===
+                if (strategy) {
+                    let currentWeight = this.learningWeights[strategy] || 1.0;
+                    if (result === 'win') {
+                        currentWeight += 0.05; // Increase trust
+                    } else {
+                        currentWeight -= 0.05; // Decrease trust
+                        if (currentWeight < 0.5) currentWeight = 0.5; // Min limit
+                    }
+                    this.learningWeights[strategy] = parseFloat(currentWeight.toFixed(2));
+                    localStorage.setItem('twot_weights', JSON.stringify(this.learningWeights));
+                }
+
+                alert(`Feedback Recorded! AI has adjusted weight for strategy: ${strategy}`);
+                this.renderLearningWeights();
+                this.renderStats();
+                this.renderHistory();
+            }
+
+            // --- RENDERERS ---
+            renderOutput(data) {
+                const div = document.getElementById('mainOutput');
+                
+                // Build Projection Table HTML
+                const projectionHTML = data.projection.map(p => `
+                    <tr>
+                        <td>${p.time}</td>
+                        <td class="${p.direction==='up'?'trend-up':'trend-down'}">$${p.price}</td>
+                        <td style="font-size:0.8rem; color:var(--muted)">${p.step === 1 ? 'Next Candle' : `+${p.step}`}</td>
+                    </tr>
+                `).join('');
+
+                if (data.type === 'HOLD') {
+                    div.innerHTML = `
+                        <div class="signal-box HOLD">
+                            <div class="signal-header"><span class="signal-type">HOLD</span></div>
+                            <p>Market conditions unclear. No strategy trigger met.</p>
+                            <h4 style="margin-top:15px; margin-bottom:5px;">Projected Path (Momentum):</h4>
+                            <table class="projection-table">
+                                ${projectionHTML}
+                            </table>
+                        </div>`;
+                    return;
+                }
+
+                div.innerHTML = `
+                    <div class="signal-box ${data.type}">
+                        <div class="signal-header">
+                            <span class="signal-type">${data.type} SIGNAL</span>
+                            <span>${data.confidence}% Confidence</span>
                         </div>
-                        <div class="prediction-price">Entry: $${p.entry}</div>
-                        ${p.type !== 'HOLD' ? `
-                        <div class="prediction-details">
-                            <div style="display:flex; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px; margin-bottom:5px;">
-                                <span>🛑 Stop Loss</span>
-                                <span style="color:#ef4444; font-weight:bold;">$${p.stop}</span>
-                            </div>
-                            <div style="display:flex; justify-content:space-between;">
-                                <span>🎯 Take Profit</span>
-                                <span style="color:#10b981; font-weight:bold;">$${p.target}</span>
-                            </div>
-                        </div>` : ''}
-                        <div class="prediction-reasoning">
-                            <strong>Logic:</strong><br>
-                            ${p.reasoning.map(r => `• ${r}`).join('<br>')}
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
+                            <div>Entry: <strong>$${data.entry}</strong></div>
+                            <div>Strategy: <span class="learning-badge">${data.strategy}</span></div>
+                            <div>Stop: <strong style="color:var(--danger)">$${data.stop}</strong></div>
+                            <div>Target: <strong style="color:var(--success)">$${data.target}</strong></div>
+                        </div>
+                        <div>
+                            <strong>AI Reasoning:</strong>
+                            <ul style="color:var(--muted); margin-left:20px; font-size:0.9rem;">
+                                ${data.reasoning.map(r => `<li>${r}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <h4 style="margin-top:15px; margin-bottom:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
+                            Future 5-Step Projection
+                        </h4>
+                        <table class="projection-table">
+                            <tr><th>Time</th><th>Projected Price</th><th>Seq</th></tr>
+                            ${projectionHTML}
+                        </table>
+
+                        <div class="feedback-actions">
+                            <button class="btn-check btn-win" onclick="app.recordFeedback(${data.id}, 'win')">✅ Correct (Teach AI)</button>
+                            <button class="btn-check btn-loss" onclick="app.recordFeedback(${data.id}, 'loss')">❌ Wrong (Teach AI)</button>
                         </div>
                     </div>
                 `;
             }
 
-            renderHistory() {
-                const container = document.getElementById('historyContainer');
-                if (this.history.length === 0) {
-                    container.innerHTML = '<div class="loading">No signals generated yet.</div>';
-                    return;
+            renderLearningWeights() {
+                const div = document.getElementById('learningWeightsDisplay');
+                let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">';
+                for(const [strat, weight] of Object.entries(this.learningWeights)) {
+                    const color = weight > 1 ? '#10b981' : weight < 1 ? '#ef4444' : '#94a3b8';
+                    html += `<div style="background:rgba(255,255,255,0.05); padding:5px 10px; border-radius:4px;">
+                                <span style="font-size:0.8rem;">${strat}</span><br>
+                                <strong style="color:${color}">x${weight}</strong>
+                             </div>`;
                 }
-                container.innerHTML = this.history.map(p => `
-                    <div class="prediction-card ${p.type.toLowerCase()}" style="margin-bottom:10px; padding:10px;">
-                        <div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#94a3b8;">
-                            <span>${p.time}</span>
-                            <span>${p.symbol}</span>
+                html += '</div>';
+                div.innerHTML = html;
+            }
+
+            renderStats() {
+                const total = this.stats.wins + this.stats.losses;
+                const rate = total === 0 ? 0 : Math.round((this.stats.wins / total) * 100);
+                document.getElementById('totalWins').innerText = this.stats.wins;
+                document.getElementById('totalLosses').innerText = this.stats.losses;
+                document.getElementById('winRate').innerText = `${rate}%`;
+            }
+
+            renderHistory() {
+                const div = document.getElementById('historyList');
+                div.innerHTML = this.history.map(h => `
+                    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>${h.time.split(',')[1]} - <strong>${h.symbol}</strong> (${h.timeframe})</span>
+                            <span style="color:${h.type==='BUY'?'var(--success)':'var(--danger)'}">${h.type}</span>
                         </div>
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:5px;">
-                            <strong class="prediction-type" style="font-size:1rem;">${p.type}</strong>
-                            <span>Entry: $${p.entry}</span>
+                        <div style="display:flex; justify-content:space-between; color:var(--muted); margin-top:5px;">
+                            <span>Conf: ${h.confidence}%</span>
+                            <span>${h.result}</span>
                         </div>
                     </div>
                 `).join('');
             }
 
-            // ============ UTILS ============
-            updateProgress(pct) { 
-                document.getElementById('analysisProgress').style.width = pct + '%';
-                document.getElementById('progressText').textContent = pct < 100 ? `Processing... ${pct}%` : 'Analysis Complete';
-            }
-            updateLivePriceDisplay() {
-                const el = document.getElementById('livePrice');
-                el.innerHTML = `${this.symbol}: <span style="color:#fff;">$${this.livePrice.toFixed(2)}</span>`;
-            }
-            setupEventListeners() {
-                document.getElementById('startBtn').addEventListener('click', () => this.analyzeMarket());
-                document.getElementById('resetBtn').addEventListener('click', () => {
-                    document.getElementById('predictionContainer').innerHTML = '<div class="loading">Click "Analyze Market" to run SMC algorithms.</div>';
-                    this.updateProgress(0);
-                });
-                document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+            clearHistory() {
+                if(confirm('Clear memory? Learning weights will remain.')) {
+                    localStorage.removeItem('twot_history');
                     this.history = [];
-                    this.saveToStorage('history', []);
                     this.renderHistory();
-                });
-                document.getElementById('symbolSelect').addEventListener('change', (e) => {
-                    this.symbol = e.target.value;
-                    this.connectToServer();
-                });
-                document.getElementById('timeframeSelect').addEventListener('change', (e) => {
-                    this.timeframe = e.target.value;
-                });
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.addEventListener('click', () => {
-                        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                        tab.classList.add('active');
-                        document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-                    });
+                }
+            }
+
+            // --- INDICATOR HELPERS ---
+            formatKlines(data) { return data.map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) })); }
+            calculateRSI(data) {
+                let gains=0, losses=0;
+                for(let i=data.length-14; i<data.length; i++){ const d=data[i].close-data[i-1].close; if(d>0)gains+=d;else losses-=d; }
+                return 100-(100/(1+(gains/14)/(losses/14||1)));
+            }
+            calculateEMA(data, p) { const k=2/(p+1); let ema=data[0].close; for(let i=1;i<data.length;i++)ema=(data[i].close*k)+(ema*(1-k)); return ema; }
+            calculateATR(data) { let tr=0; for(let i=data.length-14; i<data.length; i++){ const h=data[i].high, l=data[i].low, c=data[i-1].close; tr+=Math.max(h-l, Math.abs(h-c), Math.abs(l-c)); } return tr/14; }
+            findFVG(data) {
+                const f=[]; for(let i=data.length-50; i<data.length-1; i++){ const p=data[i-1], n=data[i+1]; 
+                if(n.low>p.high) f.push({type:'bullish', top:n.low, bottom:p.high});
+                if(n.high<p.low) f.push({type:'bearish', top:p.low, bottom:n.high}); } return f;
+            }
+            
+            setupUI() {
+                document.getElementById('analyzeBtn').onclick = () => this.runAnalysis();
+                document.getElementById('symbolSelect').onchange = (e) => { this.symbol = e.target.value; this.getLivePrice(); };
+                document.getElementById('timeframeSelect').onchange = (e) => { this.timeframe = e.target.value; };
+                document.querySelectorAll('.tab').forEach(t => {
+                    t.onclick = () => {
+                        document.querySelectorAll('.tab, .tab-content').forEach(el => el.classList.remove('active'));
+                        t.classList.add('active'); document.getElementById(t.dataset.tab + 'Tab').classList.add('active');
+                    }
                 });
             }
-            saveToStorage(key, data) { localStorage.setItem(`tradingAI_${key}`, JSON.stringify(data)); }
-            loadFromStorage(key) { try { return JSON.parse(localStorage.getItem(`tradingAI_${key}`)); } catch { return null; } }
-            startLiveUpdates() { setInterval(() => this.fetchLivePrice(), 5000); }
         }
 
-        // Init
-        const app = new AdvancedTradingAI();
+        const app = new TwoTEngine();
     </script>
 </body>
 </html>
