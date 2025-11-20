@@ -1,28 +1,18 @@
 {
-  "name": "twot-ai-trading",
-  "version": "2.0.0",
-  "description": "Advanced Professional Trading AI with Smart Money Concepts",
+  "name": "twot-ai-proxy",
+  "version": "1.0.0",
+  "description": "Proxy for Binance data used by TWOT AI frontend",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "start": "node index.js",
-    "dev": "node index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2",
-    "cors": "^2.8.5",
-    "node-fetch": "^2.6.7",
-    "helmet": "^7.0.0"
+    "start": "node index.js"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=14"
   },
-  "keywords": [
-    "trading",
-    "ai",
-    "smart-money",
-    "binance",
-    "crypto"
-  ],
-  "author": "TWOT AI",
-  "license": "MIT"
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.9"
+  }
 }
