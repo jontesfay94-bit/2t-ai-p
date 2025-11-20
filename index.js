@@ -1,228 +1,89 @@
+// index.js
+// Simple proxy server for Binance endpoints used by the TWOT AI frontend.
+// Keeps behavior minimal and robust: time, ticker, klines, depth endpoints.
 const express = require('express');
-const cors = require('cors');
-const helmet = require('helmet');
-const path = require('path');
 const fetch = require('node-fetch');
+const cors = require('cors');
+const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Security middleware
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      imgSrc: ["'self'", "data:", "https:"]
-    }
-  }
-}));
-
 app.use(cors());
 app.use(express.json());
-app.use(express.static('public'));
 
-// Enhanced proxy endpoints with fallbacks
-const BINANCE_BASE_URLS = [
-  'https://api.binance.com',
-  'https://api1.binance.com',
-  'https://api2.binance.com',
-  'https://api3.binance.com'
-];
+// Serve static frontend from /public if present
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Helper function to fetch with timeout and retries
-async function fetchWithRetry(url, options = {}, retries = 3, timeout = 8000) {
-  for (let i = 0; i < retries; i++) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), timeout);
-      
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (response.ok) {
-        return response;
-      }
-    } catch (error) {
-      if (i === retries - 1) throw error;
-      await new Promise(resolve => setTimeout(resolve, 1000 * (i + 1)));
-    }
+// Binance API base
+const BINANCE = 'https://api.binance.com/api/v3';
+
+// Helper: fetch JSON with timeout and error handling
+async function getJSON(url, opts = {}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), opts.timeout || 8000);
+  try {
+    const res = await fetch(url, { signal: controller.signal, headers: { 'User-Agent': 'twot-ai-proxy' } });
+    clearTimeout(timeout);
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
+    return await res.json();
+  } catch (e) {
+    clearTimeout(timeout);
+    throw e;
   }
-  throw new Error(`All ${retries} retries failed`);
 }
 
-// Proxy endpoint for time sync
+// Health / root
+app.get('/', (req, res) => res.json({ ok: true, msg: 'TWOT AI proxy server running' }));
+
+// /proxy/time -> returns { serverTime }
 app.get('/proxy/time', async (req, res) => {
   try {
-    for (const baseUrl of BINANCE_BASE_URLS) {
-      try {
-        const response = await fetchWithRetry(`${baseUrl}/api/v3/time`);
-        const data = await response.json();
-        res.json(data);
-        return;
-      } catch (error) {
-        console.warn(`Failed ${baseUrl}/api/v3/time, trying next...`);
-      }
-    }
-    throw new Error('All Binance endpoints failed');
-  } catch (error) {
-    console.error('Time sync error:', error);
-    res.status(500).json({ 
-      error: 'Failed to sync time',
-      serverTime: Date.now()
-    });
+    const data = await getJSON(`${BINANCE}/time`, { timeout: 5000 });
+    res.json({ serverTime: data.serverTime });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// Proxy endpoint for ticker data
+// /proxy/ticker?symbol=BTCUSDT
 app.get('/proxy/ticker', async (req, res) => {
-  const { symbol } = req.query;
-  
-  if (!symbol) {
-    return res.status(400).json({ error: 'Symbol parameter required' });
-  }
-
+  const symbol = (req.query.symbol || 'BTCUSDT').toUpperCase();
   try {
-    for (const baseUrl of BINANCE_BASE_URLS) {
-      try {
-        const response = await fetchWithRetry(`${baseUrl}/api/v3/ticker/price?symbol=${symbol}`);
-        const data = await response.json();
-        
-        // Validate response
-        if (!data || typeof data.price === 'undefined') {
-          throw new Error('Invalid response structure');
-        }
-        
-        const price = parseFloat(data.price);
-        if (!isFinite(price) || price <= 0) {
-          throw new Error('Invalid price value');
-        }
-        
-        res.json(data);
-        return;
-      } catch (error) {
-        console.warn(`Failed ${baseUrl}/api/v3/ticker/price, trying next...`);
-      }
-    }
-    throw new Error('All Binance endpoints failed');
-  } catch (error) {
-    console.error('Ticker fetch error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch ticker data',
-      symbol,
-      price: (45000 + (Math.random() - 0.5) * 1000).toFixed(2)
-    });
+    const data = await getJSON(`${BINANCE}/ticker/price?symbol=${symbol}`);
+    res.json({ symbol: data.symbol, price: data.price });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// Proxy endpoint for kline data
+// /proxy/klines?symbol=BTCUSDT&interval=1m&limit=120
 app.get('/proxy/klines', async (req, res) => {
-  const { symbol, interval, limit = 100 } = req.query;
-  
-  if (!symbol || !interval) {
-    return res.status(400).json({ error: 'Symbol and interval parameters required' });
-  }
-
+  const symbol = (req.query.symbol || 'BTCUSDT').toUpperCase();
+  const interval = req.query.interval || '1m';
+  const limit = Math.min(1000, Number(req.query.limit) || 120);
   try {
-    for (const baseUrl of BINANCE_BASE_URLS) {
-      try {
-        const response = await fetchWithRetry(
-          `${baseUrl}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`
-        );
-        const data = await response.json();
-        
-        // Validate response
-        if (!Array.isArray(data) || data.length === 0) {
-          throw new Error('Invalid kline data received');
-        }
-        
-        // Validate each kline
-        const validatedData = data.map(kline => {
-          if (!Array.isArray(kline) || kline.length < 8) {
-            throw new Error('Invalid kline structure');
-          }
-          
-          const open = parseFloat(kline[1]);
-          const high = parseFloat(kline[2]);
-          const low = parseFloat(kline[3]);
-          const close = parseFloat(kline[4]);
-          const volume = parseFloat(kline[5]);
-          
-          if (!isFinite(open) || !isFinite(high) || !isFinite(low) || !isFinite(close) || !isFinite(volume)) {
-            throw new Error('Invalid numeric values in kline');
-          }
-          
-          if (high < low || open <= 0 || high <= 0 || low <= 0 || close <= 0) {
-            throw new Error('Invalid price values in kline');
-          }
-          
-          return {
-            time: parseInt(kline[0]),
-            open,
-            high,
-            low,
-            close,
-            volume,
-            closeTime: parseInt(kline[6]),
-            quoteVolume: parseFloat(kline[7]) || 0
-          };
-        });
-        
-        res.json(validatedData);
-        return;
-      } catch (error) {
-        console.warn(`Failed ${baseUrl}/api/v3/klines, trying next...`);
-      }
-    }
-    throw new Error('All Binance endpoints failed');
-  } catch (error) {
-    console.error('Kline fetch error:', error);
-    res.status(500).json({ 
-      error: 'Failed to fetch kline data',
-      symbol,
-      interval,
-      fallback: 'using_enhanced_analysis'
-    });
+    const url = `${BINANCE}/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+    const data = await getJSON(url, { timeout: 10000 });
+    res.json(data);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy', 
-    timestamp: Date.now(),
-    service: 'TWOT AI Trading Proxy'
-  });
+// /proxy/depth?symbol=BTCUSDT&limit=5
+app.get('/proxy/depth', async (req, res) => {
+  const symbol = (req.query.symbol || 'BTCUSDT').toUpperCase();
+  const limit = Math.min(500, Number(req.query.limit) || 50);
+  try {
+    const url = `${BINANCE}/depth?symbol=${symbol}&limit=${limit}`;
+    const data = await getJSON(url, { timeout: 8000 });
+    // Return bids/asks as received; client will fallback if structure missing
+    res.json(data);
+  } catch (e) {
+    // Surface error so client can attempt fallback
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// Serve main application
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// Error handling middleware
-app.use((error, req, res, next) => {
-  console.error('Server error:', error);
-  res.status(500).json({ 
-    error: 'Internal server error',
-    message: error.message 
-  });
-});
-
-// 404 handler
-app.use((req, res) => {
-  res.status(404).json({ error: 'Endpoint not found' });
-});
-
-app.listen(PORT, () => {
-  console.log(`🚀 TWOT AI Trading Server running on port ${PORT}`);
-  console.log(`📊 Access your app: https://twot-ai-p.onrender.com`);
-  console.log(`🔧 Health check: https://twot-ai-p.onrender.com/health`);
-});
-
-module.exports = app;
+// Start server (PORT provided by hosting environment)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`TWOT AI proxy server listening on port ${PORT}`));
