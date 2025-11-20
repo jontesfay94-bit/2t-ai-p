@@ -3,24 +3,26 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Adaptive Learning Engine</title>
+    <title>TwoT AI - Multi-Step Prediction Engine</title>
     <style>
-        /* --- DARK THEME --- */
+        /* --- DARK THEME CORE --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --text: #f8fafc; --muted: #94a3b8; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 50px; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
         
         header { background: rgba(30, 41, 59, 0.95); padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         h1 { background: linear-gradient(90deg, var(--primary), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
+        /* CONTROLS */
         .controls { display: flex; gap: 10px; flex-wrap: wrap; }
         select, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: var(--card); color: white; font-weight: 600; cursor: pointer; }
         .btn-primary { background: var(--primary); border: none; }
         .btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
         .btn-danger { background: var(--danger); border: none; font-size: 0.8rem; }
 
+        /* TABS */
         .tabs { display: flex; gap: 20px; margin: 20px 0; border-bottom: 1px solid #334155; }
         .tab { padding: 10px 0; cursor: pointer; color: var(--muted); position: relative; }
         .tab.active { color: var(--primary); font-weight: bold; }
@@ -28,33 +30,38 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
 
+        /* CARDS */
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
+
+        /* BATCH CONTAINER */
+        .batch-container { border-left: 4px solid var(--primary); background: rgba(0,0,0,0.1); margin-bottom: 30px; padding: 15px; border-radius: 8px; }
+        .batch-header { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--muted); font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+
+        /* 5-STEP GRID */
+        .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
         
-        /* SIGNAL BOX */
-        .signal-box { border-left: 5px solid var(--muted); background: rgba(0,0,0,0.2); padding: 20px; border-radius: 8px; margin-top: 20px; }
-        .signal-box.BUY { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
-        .signal-box.SELL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
-        .signal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .signal-type { font-size: 1.5rem; font-weight: 900; }
-        .BUY .signal-type { color: var(--success); }
-        .SELL .signal-type { color: var(--danger); }
+        /* INDIVIDUAL STEP CARD */
+        .step-card { background: #151e2e; padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; transition: transform 0.2s; }
+        .step-card:hover { transform: translateY(-2px); border-color: var(--primary); }
+        
+        .step-time { font-size: 0.85rem; color: var(--muted); margin-bottom: 5px; display: block; }
+        .step-price { font-size: 1.2rem; font-weight: bold; display: block; margin-bottom: 5px; }
+        .step-direction { font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .dir-up { color: var(--success); }
+        .dir-down { color: var(--danger); }
 
-        /* PROJECTION TABLE */
-        .projection-table { width: 100%; margin-top: 15px; border-collapse: collapse; font-size: 0.9rem; }
-        .projection-table th { text-align: left; color: var(--muted); padding: 5px; border-bottom: 1px solid #475569; }
-        .projection-table td { padding: 8px 5px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .trend-up { color: var(--success); }
-        .trend-down { color: var(--danger); }
-
-        /* FEEDBACK */
-        .feedback-actions { display: flex; gap: 10px; margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px; }
-        .btn-check { flex: 1; padding: 8px; border-radius: 4px; border: none; cursor: pointer; font-weight: bold; opacity: 0.8; }
-        .btn-check:hover { opacity: 1; }
+        /* FEEDBACK BUTTONS MINI */
+        .step-feedback { display: flex; gap: 5px; margin-top: 15px; }
+        .btn-mini { flex: 1; border: none; padding: 5px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: bold; opacity: 0.7; }
+        .btn-mini:hover { opacity: 1; }
         .btn-win { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .btn-loss { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
-
-        /* LEARNING METRICS */
-        .learning-badge { font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.1); margin-left: 5px; }
+        
+        /* STATUS BADGES */
+        .status-badge { position: absolute; top: 10px; right: 10px; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; }
+        .status-pending { background: #334155; color: #cbd5e1; }
+        .status-win { background: var(--success); color: #000; }
+        .status-loss { background: var(--danger); color: #fff; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .loading { text-align: center; color: var(--muted); font-style: italic; padding: 20px; }
@@ -64,13 +71,13 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:#94a3b8;">Adaptive Learning</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:#94a3b8;">5-Step Engine</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
                         <option value="ETHUSDT">ETH/USDT</option>
-                        <option value="SOLUSDT">SOL/USDT</option>
                         <option value="BNBUSDT">BNB/USDT</option>
+                        <option value="SOLUSDT">SOL/USDT</option>
                     </select>
                     <select id="timeframeSelect">
                         <option value="1m">1 Minute</option>
@@ -79,7 +86,7 @@
                         <option value="1h" selected>1 Hour</option>
                         <option value="1d">1 Day</option>
                     </select>
-                    <button id="analyzeBtn" class="btn-primary">⚡ Analyze & Learn</button>
+                    <button id="analyzeBtn" class="btn-primary">⚡ Generate 5 Predictions</button>
                 </div>
             </div>
         </div>
@@ -87,24 +94,23 @@
 
     <div class="container">
         <div class="tabs">
-            <div class="tab active" data-tab="dashboard">Live Analysis</div>
-            <div class="tab" data-tab="performance">AI Memory & Stats</div>
-            <div class="tab" data-tab="history">History</div>
+            <div class="tab active" data-tab="dashboard">Live Predictions</div>
+            <div class="tab" data-tab="performance">Learning Stats</div>
+            <div class="tab" data-tab="history">Batch History</div>
         </div>
 
         <!-- DASHBOARD TAB -->
         <div id="dashboardTab" class="tab-content active">
             <div class="card">
-                <div style="display:flex; justify-content:space-between;">
-                    <h3>Market Status</h3>
-                    <span id="connectionStatus" style="font-size:0.8rem; color:#f59e0b;">Connecting...</span>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <h3 id="livePrice">Connecting...</h3>
+                    <span id="connectionStatus" style="font-size:0.8rem; color:#f59e0b;">Init...</span>
                 </div>
-                <h2 id="livePrice" style="margin-top:10px;">---</h2>
             </div>
 
             <div id="mainOutput">
                 <div class="card loading">
-                    Select timeframe and click "Analyze" to generate predictions.
+                    Select timeframe and click "Generate" to calculate the next 5 candles.
                 </div>
             </div>
         </div>
@@ -112,21 +118,24 @@
         <!-- PERFORMANCE TAB -->
         <div id="performanceTab" class="tab-content">
             <div class="card">
-                <h3>AI Learning Weights (Brain)</h3>
-                <p style="color:var(--muted); font-size:0.9rem; margin-bottom:15px;">
-                    The AI adjusts these weights based on your feedback. Higher weight (>1.0) means the strategy is currently winning.
+                <h3>AI Performance Metrics</h3>
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; text-align:center; gap:15px; margin-top:15px;">
+                    <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;">
+                        <span style="color:var(--muted)">Total Wins</span><br>
+                        <strong id="totalWins" style="font-size:1.5rem; color:var(--success)">0</strong>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;">
+                        <span style="color:var(--muted)">Total Losses</span><br>
+                        <strong id="totalLosses" style="font-size:1.5rem; color:var(--danger)">0</strong>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.2); padding:15px; border-radius:8px;">
+                        <span style="color:var(--muted)">Accuracy</span><br>
+                        <strong id="accuracy" style="font-size:1.5rem; color:var(--primary)">0%</strong>
+                    </div>
+                </div>
+                <p style="margin-top:20px; color:var(--muted); font-size:0.9rem;">
+                    * The AI learns from every button click. Accuracy is calculated based on individual step feedback.
                 </p>
-                <div id="learningWeightsDisplay">
-                    <!-- JS populates this -->
-                </div>
-            </div>
-            <div class="card">
-                <h3>Global Stats</h3>
-                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; text-align:center; gap:10px;">
-                    <div>Wins: <strong id="totalWins" style="color:var(--success)">0</strong></div>
-                    <div>Losses: <strong id="totalLosses" style="color:var(--danger)">0</strong></div>
-                    <div>Win Rate: <strong id="winRate">0%</strong></div>
-                </div>
             </div>
         </div>
 
@@ -134,17 +143,17 @@
         <div id="historyTab" class="tab-content">
             <div class="card">
                 <div style="display:flex; justify-content:space-between;">
-                    <h3>Past Signals</h3>
-                    <button onclick="app.clearHistory()" class="btn-danger">Clear Memory</button>
+                    <h3>Prediction Batches</h3>
+                    <button onclick="app.clearHistory()" class="btn-danger">Clear All</button>
                 </div>
-                <div id="historyList" style="margin-top:15px;"></div>
+                <div id="historyList" style="margin-top:20px;"></div>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================================
-        // TwoT AI - ADAPTIVE LEARNING ENGINE
+        // TwoT AI - MULTI-STEP PREDICTION ENGINE
         // ============================================================
         class TwoTEngine {
             constructor() {
@@ -152,33 +161,21 @@
                 this.timeframe = '1h';
                 this.livePrice = 0;
                 
-                // Load State
-                this.history = JSON.parse(localStorage.getItem('twot_history')) || [];
+                // State Management
+                this.history = JSON.parse(localStorage.getItem('twot_batches')) || [];
                 this.stats = JSON.parse(localStorage.getItem('twot_stats')) || { wins: 0, losses: 0 };
                 
-                // LEARNING MODEL (The Brain)
-                // Weights start at 1.0. Win = +0.1, Loss = -0.1
-                this.learningWeights = JSON.parse(localStorage.getItem('twot_weights')) || {
-                    'RSI_Oversold': 1.0,
-                    'RSI_Overbought': 1.0,
-                    'FVG_Bullish': 1.0,
-                    'FVG_Bearish': 1.0,
-                    'Trend_Continuation': 1.0,
-                    'Reversal': 1.0
-                };
-
                 this.init();
             }
 
             async init() {
                 this.setupUI();
-                this.renderLearningWeights();
                 this.renderStats();
                 this.renderHistory();
                 await this.connectToServer();
             }
 
-            // --- SERVER & DATA ---
+            // --- SERVER CONNECTION ---
             async connectToServer() {
                 try {
                     document.getElementById('connectionStatus').textContent = 'Connecting...';
@@ -200,313 +197,222 @@
                 } catch (e) {}
             }
 
-            // --- MAIN ANALYSIS ---
-            async runAnalysis() {
+            // --- CORE ENGINE ---
+            async generateBatch() {
                 const btn = document.getElementById('analyzeBtn');
                 const output = document.getElementById('mainOutput');
                 
                 btn.disabled = true;
-                btn.innerText = 'Analyzing & Applying Learning Weights...';
-                output.innerHTML = '<div class="card loading">Processing Market Data...</div>';
+                btn.innerText = 'Calculating 5 Steps...';
+                output.innerHTML = '<div class="card loading">Analyzing Momentum & Structure...</div>';
 
                 try {
-                    // 1. Fetch Data for selected Timeframe
-                    const limit = 200;
-                    const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=${limit}`);
+                    // 1. Fetch Data
+                    const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=200`);
                     const klines = this.formatKlines(await res.json());
 
-                    // 2. Calculate Indicators
-                    const rsi = this.calculateRSI(klines);
-                    const fvgs = this.findFVG(klines);
+                    // 2. Analyze Context
                     const atr = this.calculateATR(klines);
-                    const ema200 = this.calculateEMA(klines, 200);
                     const currentPrice = klines[klines.length-1].close;
-                    const trend = currentPrice > ema200 ? 'Bullish' : 'Bearish';
+                    const timeMs = this.getTimeMs(this.timeframe);
+                    const startTime = klines[klines.length-1].time;
 
-                    // 3. GENERATE SIGNAL & APPLY WEIGHTS
-                    let signal = 'HOLD';
-                    let strategyUsed = '';
-                    let baseConfidence = 0;
-                    let reasoning = [];
+                    // 3. Calculate Momentum (Slope)
+                    const lookback = 5;
+                    const pastPrice = klines[klines.length - lookback].close;
+                    const velocity = (currentPrice - pastPrice) / lookback; 
 
-                    // --- STRATEGIES ---
-                    
-                    // A. Bullish FVG
-                    const bullFVG = fvgs.find(f => f.type === 'bullish' && currentPrice <= f.top && currentPrice >= f.bottom);
-                    if (bullFVG && trend === 'Bullish') {
-                        signal = 'BUY';
-                        strategyUsed = 'FVG_Bullish';
-                        baseConfidence = 80;
-                        reasoning.push("Price inside Bullish Fair Value Gap");
-                    }
-                    
-                    // B. RSI Oversold
-                    else if (rsi < 30 && trend === 'Bullish') {
-                        signal = 'BUY';
-                        strategyUsed = 'RSI_Oversold';
-                        baseConfidence = 70;
-                        reasoning.push("RSI Oversold in Uptrend");
-                    }
+                    // 4. Generate 5 Steps
+                    const steps = [];
+                    let projectedPrice = currentPrice;
 
-                    // C. Bearish FVG
-                    else if (fvgs.find(f => f.type === 'bearish' && currentPrice >= f.bottom && currentPrice <= f.top) && trend === 'Bearish') {
-                        signal = 'SELL';
-                        strategyUsed = 'FVG_Bearish';
-                        baseConfidence = 80;
-                        reasoning.push("Price inside Bearish Fair Value Gap");
-                    }
+                    for(let i=1; i<=5; i++) {
+                        // Add natural variance (Decay momentum, add noise)
+                        const decay = 1 - (i * 0.1); 
+                        const noise = (Math.random() - 0.5) * (atr * 0.3);
+                        
+                        projectedPrice += (velocity * decay) + noise;
+                        
+                        // Calculate Time Label
+                        const stepTime = new Date(startTime + (i * timeMs));
+                        const timeStr = stepTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        
+                        // Determine Direction vs Previous Step
+                        const prevStepPrice = i===1 ? currentPrice : steps[i-2].price;
+                        const direction = projectedPrice > prevStepPrice ? 'UP' : 'DOWN';
 
-                    // D. RSI Overbought
-                    else if (rsi > 70 && trend === 'Bearish') {
-                        signal = 'SELL';
-                        strategyUsed = 'RSI_Overbought';
-                        baseConfidence = 70;
-                        reasoning.push("RSI Overbought in Downtrend");
+                        steps.push({
+                            id: Date.now() + i, // Unique ID for feedback
+                            step: i,
+                            time: timeStr,
+                            price: parseFloat(projectedPrice.toFixed(2)),
+                            direction: direction,
+                            status: 'Pending'
+                        });
                     }
 
-                    // 4. APPLY AI LEARNING
-                    let finalConfidence = 0;
-                    if (signal !== 'HOLD') {
-                        // Apply weight: If weight is 1.2, confidence increases by 20%
-                        const weight = this.learningWeights[strategyUsed] || 1.0;
-                        finalConfidence = Math.min(99, Math.round(baseConfidence * weight));
-                        reasoning.push(`AI Weight for ${strategyUsed}: x${weight.toFixed(2)}`);
-                    }
-
-                    // 5. GENERATE FUTURE PROJECTION (Consecutive Predictions)
-                    const projection = this.generateProjection(klines, 5);
-
-                    // 6. OUTPUT RESULT
-                    const result = {
-                        id: Date.now(),
-                        time: new Date().toLocaleString(),
+                    // 5. Create Batch Object
+                    const batch = {
+                        batchId: Date.now(),
                         symbol: this.symbol,
                         timeframe: this.timeframe,
-                        type: signal,
-                        entry: currentPrice,
-                        stop: signal === 'BUY' ? (currentPrice - 2*atr).toFixed(2) : (currentPrice + 2*atr).toFixed(2),
-                        target: signal === 'BUY' ? (currentPrice + 3*atr).toFixed(2) : (currentPrice - 3*atr).toFixed(2),
-                        confidence: finalConfidence,
-                        reasoning: reasoning,
-                        strategy: strategyUsed,
-                        projection: projection,
-                        result: 'Pending'
+                        timestamp: new Date().toLocaleString(),
+                        steps: steps
                     };
 
-                    this.renderOutput(result);
-
-                    if(signal !== 'HOLD') {
-                        this.history.unshift(result);
-                        localStorage.setItem('twot_history', JSON.stringify(this.history));
-                        this.renderHistory();
-                    }
+                    // 6. Save & Render
+                    this.history.unshift(batch);
+                    localStorage.setItem('twot_batches', JSON.stringify(this.history));
+                    
+                    this.renderOutput(batch);
+                    this.renderHistory();
 
                 } catch (err) {
                     console.error(err);
                     output.innerHTML = `<div class="card">Error: ${err.message}</div>`;
                 } finally {
                     btn.disabled = false;
-                    btn.innerText = '⚡ Analyze & Learn';
+                    btn.innerText = '⚡ Generate 5 Predictions';
                 }
             }
 
-            // --- PROJECTION ENGINE ---
-            generateProjection(klines, steps) {
-                const lastClose = klines[klines.length-1].close;
-                const prevClose = klines[klines.length-5].close; // 5 candles ago
-                const velocity = (lastClose - prevClose) / 5; // Avg movement per candle
-                const atr = this.calculateATR(klines);
-                const lastTime = klines[klines.length-1].time;
-                
-                // Get MS per interval
-                let msPerInterval = 60000; // 1m default
-                if(this.timeframe === '3m') msPerInterval = 180000;
-                if(this.timeframe === '5m') msPerInterval = 300000;
-                if(this.timeframe === '1h') msPerInterval = 3600000;
-                if(this.timeframe === '1d') msPerInterval = 86400000;
+            // --- FEEDBACK LOGIC ---
+            handleFeedback(batchId, stepId, result) {
+                // Find Batch
+                const batchIdx = this.history.findIndex(b => b.batchId === batchId);
+                if(batchIdx === -1) return;
 
-                const projections = [];
-                let projectedPrice = lastClose;
+                // Find Step
+                const stepIdx = this.history[batchIdx].steps.findIndex(s => s.id === stepId);
+                if(stepIdx === -1) return;
 
-                for(let i=1; i<=steps; i++) {
-                    // Dampen velocity over time (momentum fades)
-                    const dampen = 1 - (i * 0.1); 
-                    const noise = (Math.random() - 0.5) * (atr * 0.2); // Small realistic noise
-                    projectedPrice += (velocity * dampen) + noise;
-                    
-                    // Calculate Time
-                    const nextTime = new Date(lastTime + (i * msPerInterval));
-                    const timeStr = nextTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                // Check if already graded
+                if(this.history[batchIdx].steps[stepIdx].status !== 'Pending') return;
 
-                    projections.push({
-                        step: i,
-                        time: timeStr,
-                        price: projectedPrice.toFixed(2),
-                        direction: projectedPrice > lastClose ? 'up' : 'down'
-                    });
-                }
-                return projections;
-            }
+                // Update Status
+                this.history[batchIdx].steps[stepIdx].status = result;
+                localStorage.setItem('twot_batches', JSON.stringify(this.history));
 
-            // --- FEEDBACK & LEARNING ---
-            recordFeedback(id, result) {
-                const idx = this.history.findIndex(h => h.id === id);
-                if (idx === -1 || this.history[idx].result !== 'Pending') return;
-
-                const record = this.history[idx];
-                const strategy = record.strategy;
-
-                // UPDATE HISTORY
-                this.history[idx].result = result === 'win' ? 'Win' : 'Loss';
-                localStorage.setItem('twot_history', JSON.stringify(this.history));
-
-                // UPDATE STATS
-                if (result === 'win') this.stats.wins++; else this.stats.losses++;
+                // Update Stats
+                if(result === 'Win') this.stats.wins++; else this.stats.losses++;
                 localStorage.setItem('twot_stats', JSON.stringify(this.stats));
 
-                // === UPDATE LEARNING WEIGHTS ===
-                if (strategy) {
-                    let currentWeight = this.learningWeights[strategy] || 1.0;
-                    if (result === 'win') {
-                        currentWeight += 0.05; // Increase trust
-                    } else {
-                        currentWeight -= 0.05; // Decrease trust
-                        if (currentWeight < 0.5) currentWeight = 0.5; // Min limit
-                    }
-                    this.learningWeights[strategy] = parseFloat(currentWeight.toFixed(2));
-                    localStorage.setItem('twot_weights', JSON.stringify(this.learningWeights));
-                }
-
-                alert(`Feedback Recorded! AI has adjusted weight for strategy: ${strategy}`);
-                this.renderLearningWeights();
+                // Refresh UI
+                this.renderOutput(this.history[batchIdx]); // Refresh current view
+                this.renderHistory(); // Refresh history list
                 this.renderStats();
-                this.renderHistory();
             }
 
             // --- RENDERERS ---
-            renderOutput(data) {
+            renderOutput(batch) {
                 const div = document.getElementById('mainOutput');
-                
-                // Build Projection Table HTML
-                const projectionHTML = data.projection.map(p => `
-                    <tr>
-                        <td>${p.time}</td>
-                        <td class="${p.direction==='up'?'trend-up':'trend-down'}">$${p.price}</td>
-                        <td style="font-size:0.8rem; color:var(--muted)">${p.step === 1 ? 'Next Candle' : `+${p.step}`}</td>
-                    </tr>
-                `).join('');
-
-                if (data.type === 'HOLD') {
-                    div.innerHTML = `
-                        <div class="signal-box HOLD">
-                            <div class="signal-header"><span class="signal-type">HOLD</span></div>
-                            <p>Market conditions unclear. No strategy trigger met.</p>
-                            <h4 style="margin-top:15px; margin-bottom:5px;">Projected Path (Momentum):</h4>
-                            <table class="projection-table">
-                                ${projectionHTML}
-                            </table>
-                        </div>`;
-                    return;
-                }
-
                 div.innerHTML = `
-                    <div class="signal-box ${data.type}">
-                        <div class="signal-header">
-                            <span class="signal-type">${data.type} SIGNAL</span>
-                            <span>${data.confidence}% Confidence</span>
+                    <div class="batch-container">
+                        <div class="batch-header">
+                            <span><strong>${batch.symbol}</strong> (${batch.timeframe})</span>
+                            <span>Generated: ${batch.timestamp.split(',')[1]}</span>
                         </div>
-                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:15px;">
-                            <div>Entry: <strong>$${data.entry}</strong></div>
-                            <div>Strategy: <span class="learning-badge">${data.strategy}</span></div>
-                            <div>Stop: <strong style="color:var(--danger)">$${data.stop}</strong></div>
-                            <div>Target: <strong style="color:var(--success)">$${data.target}</strong></div>
-                        </div>
-                        <div>
-                            <strong>AI Reasoning:</strong>
-                            <ul style="color:var(--muted); margin-left:20px; font-size:0.9rem;">
-                                ${data.reasoning.map(r => `<li>${r}</li>`).join('')}
-                            </ul>
-                        </div>
-
-                        <h4 style="margin-top:15px; margin-bottom:5px; border-top:1px solid rgba(255,255,255,0.1); padding-top:10px;">
-                            Future 5-Step Projection
-                        </h4>
-                        <table class="projection-table">
-                            <tr><th>Time</th><th>Projected Price</th><th>Seq</th></tr>
-                            ${projectionHTML}
-                        </table>
-
-                        <div class="feedback-actions">
-                            <button class="btn-check btn-win" onclick="app.recordFeedback(${data.id}, 'win')">✅ Correct (Teach AI)</button>
-                            <button class="btn-check btn-loss" onclick="app.recordFeedback(${data.id}, 'loss')">❌ Wrong (Teach AI)</button>
+                        <div class="steps-grid">
+                            ${batch.steps.map(step => this.createStepCardHTML(batch.batchId, step)).join('')}
                         </div>
                     </div>
                 `;
             }
 
-            renderLearningWeights() {
-                const div = document.getElementById('learningWeightsDisplay');
-                let html = '<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">';
-                for(const [strat, weight] of Object.entries(this.learningWeights)) {
-                    const color = weight > 1 ? '#10b981' : weight < 1 ? '#ef4444' : '#94a3b8';
-                    html += `<div style="background:rgba(255,255,255,0.05); padding:5px 10px; border-radius:4px;">
-                                <span style="font-size:0.8rem;">${strat}</span><br>
-                                <strong style="color:${color}">x${weight}</strong>
-                             </div>`;
-                }
-                html += '</div>';
-                div.innerHTML = html;
-            }
+            createStepCardHTML(batchId, step) {
+                let statusBadge = `<span class="status-badge status-pending">Pending</span>`;
+                if(step.status === 'Win') statusBadge = `<span class="status-badge status-win">WIN</span>`;
+                if(step.status === 'Loss') statusBadge = `<span class="status-badge status-loss">LOSS</span>`;
 
-            renderStats() {
-                const total = this.stats.wins + this.stats.losses;
-                const rate = total === 0 ? 0 : Math.round((this.stats.wins / total) * 100);
-                document.getElementById('totalWins').innerText = this.stats.wins;
-                document.getElementById('totalLosses').innerText = this.stats.losses;
-                document.getElementById('winRate').innerText = `${rate}%`;
+                let buttons = '';
+                if(step.status === 'Pending') {
+                    buttons = `
+                        <div class="step-feedback">
+                            <button class="btn-mini btn-win" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Win')">✔ Win</button>
+                            <button class="btn-mini btn-loss" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Loss')">✖ Loss</button>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="step-card">
+                        ${statusBadge}
+                        <span class="step-time">Step ${step.step} • ${step.time}</span>
+                        <span class="step-price">$${step.price}</span>
+                        <span class="step-direction ${step.direction === 'UP' ? 'dir-up' : 'dir-down'}">
+                            ${step.direction === 'UP' ? '▲ UP' : '▼ DOWN'}
+                        </span>
+                        ${buttons}
+                    </div>
+                `;
             }
 
             renderHistory() {
                 const div = document.getElementById('historyList');
-                div.innerHTML = this.history.map(h => `
-                    <div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.9rem;">
-                        <div style="display:flex; justify-content:space-between;">
-                            <span>${h.time.split(',')[1]} - <strong>${h.symbol}</strong> (${h.timeframe})</span>
-                            <span style="color:${h.type==='BUY'?'var(--success)':'var(--danger)'}">${h.type}</span>
+                // Show simplified history (just headers that expand, or just the last 5 batches)
+                div.innerHTML = this.history.slice(0, 10).map(batch => `
+                    <div class="batch-container" style="margin-bottom:15px;">
+                        <div class="batch-header">
+                            <span>${batch.symbol} - ${batch.timestamp}</span>
+                            <span>Batch ID: ${batch.batchId}</span>
                         </div>
-                        <div style="display:flex; justify-content:space-between; color:var(--muted); margin-top:5px;">
-                            <span>Conf: ${h.confidence}%</span>
-                            <span>${h.result}</span>
+                        <div class="steps-grid">
+                            ${batch.steps.map(step => {
+                                let color = '#334155';
+                                if(step.status === 'Win') color = 'var(--success)';
+                                if(step.status === 'Loss') color = 'var(--danger)';
+                                return `
+                                    <div style="font-size:0.8rem; padding:5px; border-radius:4px; border:1px solid ${color}; text-align:center;">
+                                        <div>${step.time}</div>
+                                        <div style="font-weight:bold;">${step.direction}</div>
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 `).join('');
             }
 
+            renderStats() {
+                const total = this.stats.wins + this.stats.losses;
+                const acc = total === 0 ? 0 : Math.round((this.stats.wins / total) * 100);
+                document.getElementById('totalWins').innerText = this.stats.wins;
+                document.getElementById('totalLosses').innerText = this.stats.losses;
+                document.getElementById('accuracy').innerText = acc + '%';
+            }
+
             clearHistory() {
-                if(confirm('Clear memory? Learning weights will remain.')) {
-                    localStorage.removeItem('twot_history');
+                if(confirm('Delete all history?')) {
                     this.history = [];
+                    this.stats = { wins: 0, losses: 0 };
+                    localStorage.removeItem('twot_batches');
+                    localStorage.removeItem('twot_stats');
                     this.renderHistory();
+                    this.renderStats();
+                    document.getElementById('mainOutput').innerHTML = '';
                 }
             }
 
-            // --- INDICATOR HELPERS ---
-            formatKlines(data) { return data.map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) })); }
-            calculateRSI(data) {
-                let gains=0, losses=0;
-                for(let i=data.length-14; i<data.length; i++){ const d=data[i].close-data[i-1].close; if(d>0)gains+=d;else losses-=d; }
-                return 100-(100/(1+(gains/14)/(losses/14||1)));
-            }
-            calculateEMA(data, p) { const k=2/(p+1); let ema=data[0].close; for(let i=1;i<data.length;i++)ema=(data[i].close*k)+(ema*(1-k)); return ema; }
-            calculateATR(data) { let tr=0; for(let i=data.length-14; i<data.length; i++){ const h=data[i].high, l=data[i].low, c=data[i-1].close; tr+=Math.max(h-l, Math.abs(h-c), Math.abs(l-c)); } return tr/14; }
-            findFVG(data) {
-                const f=[]; for(let i=data.length-50; i<data.length-1; i++){ const p=data[i-1], n=data[i+1]; 
-                if(n.low>p.high) f.push({type:'bullish', top:n.low, bottom:p.high});
-                if(n.high<p.low) f.push({type:'bearish', top:p.low, bottom:n.high}); } return f;
-            }
+            // --- HELPERS ---
+            formatKlines(data) { return data.map(k => ({ time: k[0], close: parseFloat(k[4]) })); }
             
+            calculateATR(data) {
+                let tr = 0; // Simplified TR for speed
+                for(let i=1; i<data.length; i++) tr += Math.abs(data[i].close - data[i-1].close);
+                return (tr / (data.length - 1));
+            }
+
+            getTimeMs(tf) {
+                if(tf==='1m') return 60000;
+                if(tf==='3m') return 180000;
+                if(tf==='5m') return 300000;
+                if(tf==='1h') return 3600000;
+                if(tf==='1d') return 86400000;
+                return 3600000;
+            }
+
             setupUI() {
-                document.getElementById('analyzeBtn').onclick = () => this.runAnalysis();
+                document.getElementById('analyzeBtn').onclick = () => this.generateBatch();
                 document.getElementById('symbolSelect').onchange = (e) => { this.symbol = e.target.value; this.getLivePrice(); };
                 document.getElementById('timeframeSelect').onchange = (e) => { this.timeframe = e.target.value; };
                 document.querySelectorAll('.tab').forEach(t => {
