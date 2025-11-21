@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Self-Correcting Engine</title>
+    <title>TwoT AI - Quantitative 90% Engine</title>
     <style>
         /* --- DARK THEME --- */
-        :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --text: #f8fafc; --muted: #94a3b8; }
+        :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 80px; }
         .container { max-width: 1200px; margin: 0 auto; padding: 15px; }
@@ -15,6 +15,7 @@
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         h1 { background: linear-gradient(90deg, var(--primary), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
+        /* CONTROLS */
         .controls { display: flex; gap: 10px; flex-wrap: wrap; }
         select, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: var(--card); color: white; font-weight: 600; cursor: pointer; }
         .btn-primary { background: var(--primary); border: none; }
@@ -30,17 +31,26 @@
 
         .card { background: var(--card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
 
-        /* BATCH CONTAINER */
+        /* QUANT METRICS */
+        .quant-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .quant-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; text-align: center; font-size: 0.85rem; }
+        .quant-val { display: block; font-size: 1.1rem; font-weight: bold; margin-top: 5px; }
+
+        /* BATCH & STEPS */
         .batch-container { border-left: 4px solid var(--primary); background: rgba(0,0,0,0.1); margin-bottom: 30px; padding: 15px; border-radius: 8px; }
         .batch-header { display: flex; justify-content: space-between; margin-bottom: 15px; color: var(--muted); font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
-
-        /* STEPS */
+        
         .steps-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; }
         .step-card { background: #151e2e; padding: 15px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); position: relative; }
         .step-time { font-size: 0.85rem; color: var(--muted); display: block; }
         .step-price { font-size: 1.1rem; font-weight: bold; display: block; margin: 5px 0; }
         .dir-up { color: var(--success); }
         .dir-down { color: var(--danger); }
+
+        /* ORDER BOOK BAR */
+        .ob-bar { height: 6px; width: 100%; background: #334155; border-radius: 3px; margin-top: 5px; overflow: hidden; display: flex; }
+        .ob-bids { background: var(--success); height: 100%; }
+        .ob-asks { background: var(--danger); height: 100%; }
 
         /* FEEDBACK */
         .step-feedback { display: flex; gap: 5px; margin-top: 10px; }
@@ -49,8 +59,7 @@
         .btn-win { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .btn-loss { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
         
-        .regime-badge { font-size: 0.8rem; padding: 3px 8px; border-radius: 12px; background: rgba(255,255,255,0.1); margin-left: 10px; }
-        .mistake-log { font-family: monospace; font-size: 0.8rem; color: #f59e0b; margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; }
+        .mistake-log { font-family: monospace; font-size: 0.8rem; color: var(--warning); margin-top: 5px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; }
 
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .loading { text-align: center; color: var(--muted); font-style: italic; padding: 20px; }
@@ -60,12 +69,14 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:#94a3b8;">Self-Correcting</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:#94a3b8;">Quant Engine</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
                         <option value="ETHUSDT">ETH/USDT</option>
                         <option value="SOLUSDT">SOL/USDT</option>
+                        <option value="XRPUSDT">XRP/USDT</option>
+                        <option value="BNBUSDT">BNB/USDT</option>
                     </select>
                     <select id="timeframeSelect">
                         <option value="1m">1 Minute</option>
@@ -73,7 +84,7 @@
                         <option value="15m">15 Minutes</option>
                         <option value="1h" selected>1 Hour</option>
                     </select>
-                    <button id="analyzeBtn" class="btn-primary">⚡ Analyze Market</button>
+                    <button id="analyzeBtn" class="btn-primary">⚡ Analyze & Learn</button>
                 </div>
             </div>
         </div>
@@ -82,7 +93,7 @@
     <div class="container">
         <div class="tabs">
             <div class="tab active" data-tab="dashboard">Live Prediction</div>
-            <div class="tab" data-tab="learning">AI Brain (Blacklist)</div>
+            <div class="tab" data-tab="learning">AI Memory</div>
             <div class="tab" data-tab="history">History</div>
         </div>
 
@@ -91,15 +102,16 @@
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3 id="livePrice">Connecting...</h3>
-                    <div>
-                        Market Regime: <span id="marketRegime" class="regime-badge">Detecting...</span>
+                    <div style="text-align:right;">
+                        <div style="font-size:0.8rem; color:var(--muted);">Market Status</div>
+                        <strong id="marketStatus">Scanning...</strong>
                     </div>
                 </div>
             </div>
 
             <div id="mainOutput">
                 <div class="card loading">
-                    Select timeframe and click "Analyze" to run the Self-Correcting Engine.
+                    Click "Analyze" to run the Quant Engine (Order Book + SMC).
                 </div>
             </div>
         </div>
@@ -107,10 +119,7 @@
         <!-- LEARNING TAB -->
         <div id="learningTab" class="tab-content">
             <div class="card">
-                <h3>AI Mistake Memory (Blacklist)</h3>
-                <p style="color:var(--muted); font-size:0.9rem;">
-                    When you mark a prediction as "Loss", the AI analyzes the conditions at that moment and adds them here. It will AVOID trading these conditions in the future.
-                </p>
+                <h3>AI Blacklist (Mistakes)</h3>
                 <div id="blacklistContainer" style="margin-top:15px;"></div>
             </div>
             <div class="card">
@@ -145,8 +154,6 @@
                 // DATA STORES
                 this.history = JSON.parse(localStorage.getItem('twot_batches')) || [];
                 this.stats = JSON.parse(localStorage.getItem('twot_stats')) || { wins: 0, losses: 0 };
-                
-                // THE BLACKLIST (AI Memory of Mistakes)
                 this.blacklist = JSON.parse(localStorage.getItem('twot_blacklist')) || [];
                 
                 this.init();
@@ -176,184 +183,201 @@
                 } catch (e) {}
             }
 
-            // ============ THE SMART ENGINE ============
+            // ============ QUANT ENGINE ============
             async generateBatch() {
                 const btn = document.getElementById('analyzeBtn');
                 const output = document.getElementById('mainOutput');
                 btn.disabled = true;
-                btn.innerText = 'Analyzing Regimes & Checking Blacklist...';
-                output.innerHTML = '<div class="card loading">Scanning Market Conditions...</div>';
+                btn.innerText = 'Scanning Order Book & Volatility...';
+                output.innerHTML = '<div class="card loading">Fetching Deep Data...</div>';
 
                 try {
-                    const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=200`);
-                    const klines = this.formatKlines(await res.json());
-
-                    // 1. DETECT REGIME (Trend vs Range)
-                    const adx = this.calculateADX(klines);
-                    const regime = adx > 25 ? 'TRENDING' : 'RANGING';
-                    document.getElementById('marketRegime').innerText = regime;
-                    document.getElementById('marketRegime').style.background = regime === 'TRENDING' ? '#10b981' : '#f59e0b';
-
-                    // 2. CAPTURE CURRENT STATE (Snapshot for learning)
-                    const rsi = this.calculateRSI(klines);
-                    const bb = this.calculateBollinger(klines);
-                    const currentPrice = klines[klines.length-1].close;
+                    // 1. FETCH ALL DATA
+                    const [kRes, dRes] = await Promise.all([
+                        fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=200`),
+                        fetch(`/proxy/depth?symbol=${this.symbol}&limit=50`)
+                    ]);
                     
-                    const currentState = {
-                        regime: regime,
-                        rsiState: rsi > 70 ? 'Overbought' : rsi < 30 ? 'Oversold' : 'Neutral',
-                        bbState: currentPrice > bb.upper ? 'AboveBB' : currentPrice < bb.lower ? 'BelowBB' : 'InsideBB',
-                        adx: adx.toFixed(1)
-                    };
+                    const klines = this.formatKlines(await kRes.json());
+                    const depth = await dRes.json();
 
-                    // 3. CHECK BLACKLIST (Have we failed here before?)
-                    const isBlacklisted = this.blacklist.some(b => 
-                        b.regime === currentState.regime && 
-                        b.rsiState === currentState.rsiState &&
-                        b.bbState === currentState.bbState
-                    );
-
-                    if(isBlacklisted) {
-                        output.innerHTML = `
-                            <div class="card" style="border-left:4px solid #ef4444;">
-                                <h3>⛔ Trade Skipped (AI Memory)</h3>
-                                <p>The AI recognized a pattern that caused losses in the past:</p>
-                                <ul>
-                                    <li>Regime: ${currentState.regime}</li>
-                                    <li>RSI: ${currentState.rsiState}</li>
-                                    <li>Structure: ${currentState.bbState}</li>
-                                </ul>
-                                <p><strong>Action:</strong> Waiting for safer conditions.</p>
-                            </div>`;
+                    // 2. CALCULATE QUANT METRICS
+                    const currentPrice = klines[klines.length-1].close;
+                    const rsi = this.calculateRSI(klines);
+                    const chop = this.calculateChoppiness(klines);
+                    const obAnalysis = this.analyzeOrderBook(depth);
+                    const volAnalysis = this.analyzeVolatility(klines);
+                    const sweep = this.detectLiquiditySweep(klines);
+                    
+                    // 3. SAFETY CHECKS (The Filters)
+                    
+                    // A. Volatility Circuit Breaker
+                    if (volAnalysis.isExplosive) {
+                        output.innerHTML = this.renderErrorCard('⛔ Safety Mode Active', 
+                            `Volume is ${volAnalysis.ratio}x higher than average. Flash Crash/Pump risk.`, '#ef4444');
+                        document.getElementById('marketStatus').innerText = 'VOLATILE';
+                        document.getElementById('marketStatus').style.color = '#ef4444';
                         return;
                     }
 
-                    // 4. GENERATE 5 PREDICTIONS
-                    const steps = [];
-                    const atr = this.calculateATR(klines);
-                    // Logic Switch based on Regime
-                    let velocity = 0;
-                    
-                    if(regime === 'TRENDING') {
-                        // Use Momentum
-                        velocity = (currentPrice - klines[klines.length-5].close) / 5;
-                    } else {
-                        // Use Mean Reversion (Return to Moving Average)
-                        const sma = klines.reduce((a,b)=>a+b.close,0)/klines.length; // Simple approximation for logic
-                        velocity = (sma - currentPrice) / 10; // Pull towards mean
+                    // B. Choppiness Filter
+                    if (chop > 61.8) {
+                        output.innerHTML = this.renderErrorCard('⛔ Market is Choppy', 
+                            `Choppiness Index: ${chop.toFixed(1)}. Market is sideways.`, '#f59e0b');
+                        document.getElementById('marketStatus').innerText = 'CHOPPY';
+                        document.getElementById('marketStatus').style.color = '#f59e0b';
+                        return;
                     }
 
-                    let projectedPrice = currentPrice;
+                    // C. BTC Correlation (Check BTC trend)
+                    let btcTrend = 'NEUTRAL';
+                    if (this.symbol !== 'BTCUSDT') {
+                        const bRes = await fetch(`/proxy/klines?symbol=BTCUSDT&interval=${this.timeframe}&limit=50`);
+                        const bKlines = this.formatKlines(await bRes.json());
+                        btcTrend = bKlines[bKlines.length-1].close > this.calculateSMA(bKlines, 20) ? 'BULLISH' : 'BEARISH';
+                    }
+
+                    // 4. GENERATE 5 PREDICTIONS
+                    // Base direction on Order Book + RSI
+                    let directionBias = 0; 
+                    
+                    // Order Book Weight
+                    if(obAnalysis.ratio > 0.6) directionBias += 1; // Buyers > Sellers
+                    if(obAnalysis.ratio < 0.4) directionBias -= 1; // Sellers > Buyers
+                    
+                    // Sweep Weight (SMC)
+                    if(sweep === 'BULLISH_SWEEP') directionBias += 2; // Strong Buy
+                    if(sweep === 'BEARISH_SWEEP') directionBias -= 2; // Strong Sell
+
+                    // Velocity calculation
+                    let velocity = (currentPrice - klines[klines.length-5].close) / 5;
+                    
+                    // Adjust Velocity based on Quant Data
+                    if(directionBias > 0 && velocity < 0) velocity = Math.abs(velocity) * 0.5; // Reversal likely
+                    if(directionBias < 0 && velocity > 0) velocity = -Math.abs(velocity) * 0.5; // Reversal likely
+
+                    const steps = [];
                     const timeMs = this.getTimeMs(this.timeframe);
+                    let projectedPrice = currentPrice;
 
                     for(let i=1; i<=5; i++) {
-                        // Project
-                        projectedPrice += velocity; 
+                        projectedPrice += velocity;
+                        const prev = i===1 ? currentPrice : steps[i-2].price;
+                        const dir = projectedPrice > prev ? 'UP' : 'DOWN';
                         
-                        // Determine Direction
-                        const prevPrice = i===1 ? currentPrice : steps[i-2].price;
-                        const direction = projectedPrice > prevPrice ? 'UP' : 'DOWN';
-
                         steps.push({
                             id: Date.now() + i,
                             step: i,
                             time: new Date(klines[klines.length-1].time + (i * timeMs)).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
                             price: parseFloat(projectedPrice.toFixed(2)),
-                            direction: direction,
+                            direction: dir,
                             status: 'Pending',
-                            // Save snapshot inside the step for post-mortem
-                            snapshot: currentState 
+                            snapshot: { rsi: rsi.toFixed(1), obRatio: obAnalysis.ratio.toFixed(2), sweep: sweep || 'None' }
                         });
                     }
 
-                    // 5. SAVE & RENDER
+                    // 5. RENDER
                     const batch = {
                         batchId: Date.now(),
                         symbol: this.symbol,
                         timeframe: this.timeframe,
                         timestamp: new Date().toLocaleString(),
-                        steps: steps
+                        steps: steps,
+                        metrics: {
+                            obRatio: obAnalysis.ratio,
+                            volRatio: volAnalysis.ratio,
+                            sweep: sweep,
+                            btcTrend: btcTrend
+                        }
                     };
 
                     this.history.unshift(batch);
                     localStorage.setItem('twot_batches', JSON.stringify(this.history));
                     this.renderOutput(batch);
                     this.renderHistory();
+                    
+                    document.getElementById('marketStatus').innerText = 'ACTIVE';
+                    document.getElementById('marketStatus').style.color = '#10b981';
 
                 } catch (err) {
                     console.error(err);
                     output.innerHTML = `<div class="card">Error: ${err.message}</div>`;
                 } finally {
                     btn.disabled = false;
-                    btn.innerText = '⚡ Analyze Market';
+                    btn.innerText = '⚡ Analyze & Learn';
                 }
             }
 
-            // ============ POST-MORTEM ANALYSIS (Deep Learning) ============
-            handleFeedback(batchId, stepId, result) {
-                const bIdx = this.history.findIndex(b => b.batchId === batchId);
-                if(bIdx === -1) return;
-                const sIdx = this.history[bIdx].steps.findIndex(s => s.id === stepId);
-                
-                const step = this.history[bIdx].steps[sIdx];
-                if(step.status !== 'Pending') return;
+            // ============ QUANT HELPERS ============
 
-                step.status = result;
-
-                // *** THE LEARNING MOMENT ***
-                if(result === 'Loss') {
-                    this.analyzeMistake(step);
-                }
-
-                localStorage.setItem('twot_batches', JSON.stringify(this.history));
-                
-                if(result === 'Win') this.stats.wins++; else this.stats.losses++;
-                localStorage.setItem('twot_stats', JSON.stringify(this.stats));
-
-                this.renderOutput(this.history[bIdx]);
-                this.renderStats();
-                this.renderBlacklist();
+            analyzeOrderBook(depth) {
+                // Sum top 50 bids and asks
+                const bids = depth.bids.reduce((a, b) => a + parseFloat(b[1]), 0);
+                const asks = depth.asks.reduce((a, b) => a + parseFloat(b[1]), 0);
+                const total = bids + asks;
+                return {
+                    bids, asks,
+                    ratio: bids / total // > 0.5 means Buyers Control
+                };
             }
 
-            analyzeMistake(step) {
-                // This function runs when you click LOSS
-                // It looks at the snapshot taken when the prediction was made
-                const snap = step.snapshot;
+            analyzeVolatility(klines) {
+                // Current Volume vs SMA 20 Volume
+                const volumes = klines.map(k => k.volume);
+                const currentVol = volumes[volumes.length-1];
+                const avgVol = volumes.slice(-21, -1).reduce((a,b)=>a+b,0) / 20;
                 
-                // If this specific combination isn't in blacklist, add it
-                const exists = this.blacklist.some(b => 
-                    b.regime === snap.regime && 
-                    b.rsiState === snap.rsiState && 
-                    b.bbState === snap.bbState
-                );
+                return {
+                    ratio: (currentVol / avgVol).toFixed(1),
+                    isExplosive: currentVol > (avgVol * 5) // 500% Volume spike = Danger
+                };
+            }
 
-                if(!exists) {
-                    this.blacklist.push({
-                        regime: snap.regime,
-                        rsiState: snap.rsiState,
-                        bbState: snap.bbState,
-                        count: 1,
-                        reason: `Failed prediction in ${snap.regime} market with ${snap.rsiState} RSI`
-                    });
-                    alert(`AI LEARNED: The AI has blacklisted this condition: [${snap.regime} + ${snap.rsiState}]. It will be more cautious next time.`);
-                } else {
-                    // Increment count
-                    const item = this.blacklist.find(b => b.regime === snap.regime && b.rsiState === snap.rsiState);
-                    if(item) item.count++;
-                }
-                
-                localStorage.setItem('twot_blacklist', JSON.stringify(this.blacklist));
+            detectLiquiditySweep(klines) {
+                // Look for: Low broken, but closed above (Bullish Sweep)
+                const recent = klines.slice(-10);
+                const current = recent[recent.length-1];
+                const lowestLow = Math.min(...recent.slice(0, -1).map(k => k.low));
+                const highestHigh = Math.max(...recent.slice(0, -1).map(k => k.high));
+
+                if (current.low < lowestLow && current.close > lowestLow) return 'BULLISH_SWEEP';
+                if (current.high > highestHigh && current.close < highestHigh) return 'BEARISH_SWEEP';
+                return null;
             }
 
             // ============ RENDERERS ============
+
             renderOutput(batch) {
                 const div = document.getElementById('mainOutput');
+                const obPct = (batch.metrics.obRatio * 100).toFixed(0);
+                
                 div.innerHTML = `
                     <div class="batch-container">
                         <div class="batch-header">
                             <span>${batch.symbol} (${batch.timeframe})</span>
                             <span>${batch.timestamp.split(',')[1]}</span>
                         </div>
+                        
+                        <!-- QUANT DASHBOARD -->
+                        <div class="quant-grid">
+                            <div class="quant-box">
+                                <span style="color:var(--muted)">Order Book (Buyers)</span>
+                                <div class="ob-bar">
+                                    <div class="ob-bids" style="width:${obPct}%"></div>
+                                    <div class="ob-asks" style="width:${100-obPct}%"></div>
+                                </div>
+                                <span class="quant-val" style="color:${obPct>50?'var(--success)':'var(--danger)'}">${obPct}% Bid Power</span>
+                            </div>
+                            <div class="quant-box">
+                                <span style="color:var(--muted)">SMC Pattern</span>
+                                <span class="quant-val" style="color:var(--primary)">${batch.metrics.sweep || 'None'}</span>
+                            </div>
+                            <div class="quant-box">
+                                <span style="color:var(--muted)">BTC Trend</span>
+                                <span class="quant-val" style="color:${batch.metrics.btcTrend==='BULLISH'?'var(--success)':'var(--danger)'}">${batch.metrics.btcTrend}</span>
+                            </div>
+                        </div>
+
                         <div class="steps-grid">
                             ${batch.steps.map(step => this.createStepHTML(batch.batchId, step)).join('')}
                         </div>
@@ -361,19 +385,21 @@
                 `;
             }
 
+            renderErrorCard(title, msg, color) {
+                return `<div class="card" style="border-left:4px solid ${color};"><h3>${title}</h3><p>${msg}</p></div>`;
+            }
+
             createStepHTML(batchId, step) {
                 let feedback = '';
                 if(step.status === 'Pending') {
                     feedback = `
                         <div class="step-feedback">
-                            <button class="btn-mini btn-win" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Win')">✔ Correct</button>
-                            <button class="btn-mini btn-loss" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Loss')">✖ Wrong</button>
+                            <button class="btn-mini btn-win" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Win')">✔</button>
+                            <button class="btn-mini btn-loss" onclick="app.handleFeedback(${batchId}, ${step.id}, 'Loss')">✖</button>
                         </div>`;
                 } else {
-                    feedback = `<div style="margin-top:10px; font-size:0.8rem; text-align:center; font-weight:bold; color:${step.status==='Win'?'var(--success)':'var(--danger)'}">${step.status.toUpperCase()}</div>`;
-                    if(step.status === 'Loss') {
-                        feedback += `<div class="mistake-log">⚠ Analyzed & Blacklisted</div>`;
-                    }
+                    feedback = `<div style="margin-top:5px; font-size:0.75rem; text-align:center; font-weight:bold; color:${step.status==='Win'?'var(--success)':'var(--danger)'}">${step.status}</div>`;
+                    if(step.status === 'Loss') feedback += `<div class="mistake-log">⚠ Blacklisted</div>`;
                 }
 
                 return `
@@ -388,18 +414,36 @@
                 `;
             }
 
-            renderBlacklist() {
-                const div = document.getElementById('blacklistContainer');
-                if(this.blacklist.length === 0) {
-                    div.innerHTML = '<div style="text-align:center; color:var(--muted); font-style:italic;">No mistakes learned yet. The AI is clean.</div>';
-                    return;
+            // ============ LOGIC REUSE (Kept from previous versions) ============
+            handleFeedback(batchId, stepId, result) {
+                const bIdx = this.history.findIndex(b => b.batchId === batchId);
+                if(bIdx === -1) return;
+                const sIdx = this.history[bIdx].steps.findIndex(s => s.id === stepId);
+                const step = this.history[bIdx].steps[sIdx];
+                if(step.status !== 'Pending') return;
+
+                step.status = result;
+                if(result === 'Loss') this.analyzeMistake(step);
+
+                localStorage.setItem('twot_batches', JSON.stringify(this.history));
+                if(result === 'Win') this.stats.wins++; else this.stats.losses++;
+                localStorage.setItem('twot_stats', JSON.stringify(this.stats));
+
+                this.renderOutput(this.history[bIdx]);
+                this.renderStats();
+                this.renderBlacklist();
+            }
+
+            analyzeMistake(step) {
+                const snap = step.snapshot;
+                const exists = this.blacklist.some(b => b.obRatio === snap.obRatio && b.sweep === snap.sweep);
+                if(!exists) {
+                    this.blacklist.push({ obRatio: snap.obRatio, sweep: snap.sweep, count: 1, reason: `Failed with OB Ratio ${snap.obRatio}` });
+                } else {
+                    const item = this.blacklist.find(b => b.obRatio === snap.obRatio);
+                    if(item) item.count++;
                 }
-                div.innerHTML = this.blacklist.map(b => `
-                    <div style="background:rgba(239, 68, 68, 0.1); padding:10px; border-radius:6px; margin-bottom:10px; font-size:0.85rem; border-left:3px solid var(--danger);">
-                        <strong>Avoid:</strong> ${b.regime} + ${b.rsiState} + ${b.bbState}
-                        <div style="font-size:0.75rem; color:var(--muted);">Cause: Caused ${b.count} losses previously.</div>
-                    </div>
-                `).join('');
+                localStorage.setItem('twot_blacklist', JSON.stringify(this.blacklist));
             }
 
             renderStats() {
@@ -410,40 +454,37 @@
                 document.getElementById('accuracy').innerText = acc + '%';
             }
 
+            renderBlacklist() {
+                const div = document.getElementById('blacklistContainer');
+                if(this.blacklist.length === 0) { div.innerHTML = '<div style="text-align:center; color:var(--muted)">No mistakes recorded.</div>'; return; }
+                div.innerHTML = this.blacklist.map(b => `<div style="background:rgba(239,68,68,0.1); padding:5px; border-radius:4px; margin-bottom:5px; font-size:0.8rem;">Avoid: OB Ratio ${b.obRatio}</div>`).join('');
+            }
+
             renderHistory() {
                 document.getElementById('historyList').innerHTML = this.history.slice(0, 5).map(b => 
-                    `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.8rem;">
-                        ${b.symbol} - ${b.timestamp} (${b.timeframe})
-                     </div>`
+                    `<div style="padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.8rem;">${b.symbol} - ${b.timestamp}</div>`
                 ).join('');
             }
 
-            clearHistory() {
-                if(confirm('Reset everything?')) {
-                    localStorage.clear();
-                    location.reload();
-                }
-            }
-
-            // --- INDICATORS ---
-            formatKlines(d) { return d.map(k => ({time:k[0], close:parseFloat(k[4]), high:parseFloat(k[2]), low:parseFloat(k[3])})); }
+            clearHistory() { if(confirm('Clear all?')) { localStorage.clear(); location.reload(); } }
+            
+            // INDICATOR MATH
+            formatKlines(d) { return d.map(k => ({time:k[0], close:parseFloat(k[4]), high:parseFloat(k[2]), low:parseFloat(k[3]), volume:parseFloat(k[5])})); }
             calculateRSI(d) { let g=0,l=0; for(let i=d.length-14;i<d.length;i++){const x=d[i].close-d[i-1].close; x>0?g+=x:l-=x;} return 100-(100/(1+(g/14)/(l/14||1))); }
-            calculateATR(d) { let t=0; for(let i=1;i<d.length;i++) t+=Math.abs(d[i].close-d[i-1].close); return t/d.length; }
-            calculateBollinger(d) { 
-                const sl=d.slice(-20); const sma=sl.reduce((a,b)=>a+b.close,0)/20; 
-                const sd=Math.sqrt(sl.reduce((a,b)=>a+Math.pow(b.close-sma,2),0)/20); 
-                return { upper:sma+(2*sd), lower:sma-(2*sd) }; 
+            calculateSMA(d, p) { if(d.length < p) return d[0].close; return d.slice(-p).reduce((a,b)=>a+b.close,0)/p; }
+            calculateChoppiness(klines, period=14) {
+                const n = period; if(klines.length < n+1) return 50;
+                const slice = klines.slice(-n);
+                let trSum = 0, maxHi = slice[0].high, minLo = slice[0].low;
+                for(let i=1; i<slice.length; i++) {
+                    const h = slice[i].high, l = slice[i].low, pc = slice[i-1].close;
+                    trSum += Math.max(h-l, Math.abs(h-pc), Math.abs(l-pc));
+                    if(h > maxHi) maxHi = h; if(l < minLo) minLo = l;
+                }
+                return 100 * Math.log10(trSum / (maxHi - minLo)) / Math.log10(n);
             }
-            calculateADX(d) {
-                // Simplified ADX simulation for trend strength
-                const tr = this.calculateATR(d);
-                return (tr / d[d.length-1].close) * 10000; // Normalizing volatility to score
-            }
-            getTimeMs(tf) {
-                const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000};
-                return map[tf] || 3600000;
-            }
-
+            getTimeMs(tf) { const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000}; return map[tf] || 3600000; }
+            
             setupUI() {
                 document.getElementById('analyzeBtn').onclick = () => this.generateBatch();
                 document.getElementById('symbolSelect').onchange = (e) => { this.symbol=e.target.value; this.getLivePrice(); };
