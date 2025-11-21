@@ -15,9 +15,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // BASE URL for Binance API
 const BINANCE_BASE = 'https://api.binance.com/api/v3';
 
-// --- PROXY ROUTES (The AI fetches data from here) ---
+// --- PROXY ROUTES ---
 
-// 1. Get Ticker Price (e.g., BTC Price)
+// 1. Get Ticker Price
 app.get('/proxy/ticker', async (req, res) => {
     try {
         const { symbol } = req.query;
@@ -28,7 +28,7 @@ app.get('/proxy/ticker', async (req, res) => {
     }
 });
 
-// 2. Get 24hr Stats (Volume, Change)
+// 2. Get 24hr Stats
 app.get('/proxy/24hr', async (req, res) => {
     try {
         const { symbol } = req.query;
@@ -39,7 +39,7 @@ app.get('/proxy/24hr', async (req, res) => {
     }
 });
 
-// 3. Get Klines (Candlesticks for Analysis)
+// 3. Get Klines (Candlesticks)
 app.get('/proxy/klines', async (req, res) => {
     try {
         const { symbol, interval, limit } = req.query;
@@ -56,15 +56,7 @@ app.get('/proxy/klines', async (req, res) => {
     }
 });
 
-// Fallback: Serve index.html for any other route
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
-// --- NEW ROUTE: Order Book Depth ---
+// 4. NEW: Get Order Book Depth (THIS WAS MISSING)
 app.get('/proxy/depth', async (req, res) => {
     try {
         const { symbol, limit } = req.query;
@@ -76,6 +68,16 @@ app.get('/proxy/depth', async (req, res) => {
         });
         res.json(response.data);
     } catch (error) {
+        console.error('Depth Error:', error.message);
         res.status(500).json({ error: 'Failed to fetch depth' });
     }
+});
+
+// Fallback: Serve index.html for any other route
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
