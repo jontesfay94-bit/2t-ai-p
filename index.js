@@ -64,3 +64,18 @@ app.get('*', (req, res) => {
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
+// --- NEW ROUTE: Order Book Depth ---
+app.get('/proxy/depth', async (req, res) => {
+    try {
+        const { symbol, limit } = req.query;
+        const response = await axios.get(`${BINANCE_BASE}/depth`, {
+            params: {
+                symbol: symbol,
+                limit: limit || 50
+            }
+        });
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch depth' });
+    }
+});
