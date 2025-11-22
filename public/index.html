@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Smart Learning Engine</title>
+    <title>TwoT AI - Instant Precision Engine</title>
     <style>
         /* --- DARK THEME --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
@@ -48,7 +48,7 @@
 
         /* SESSION FEED */
         .session-feed { display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
-        .prediction-card { background: #151e2e; padding: 15px; border-radius: 8px; border-left: 5px solid #475569; animation: slideIn 0.5s ease; position: relative; }
+        .prediction-card { background: #151e2e; padding: 15px; border-radius: 8px; border-left: 5px solid #475569; animation: slideIn 0.3s ease; position: relative; }
         .prediction-card.BUY { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
         .prediction-card.SELL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
         .prediction-card.HOLD { border-left-color: var(--warning); }
@@ -58,14 +58,15 @@
         
         .risk-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; }
 
-        .feedback-area { display: flex; gap: 10px; margin-top: 10px; }
-        .btn-mini { flex: 1; padding: 6px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; opacity: 0.8; font-size: 0.8rem; }
+        .feedback-area { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+        .btn-mini { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; opacity: 0.9; font-size: 0.8rem; }
         .btn-mini:hover { opacity: 1; }
         
         /* Result colors */
         .btn-win { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .btn-loss { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
         .btn-missed-buy { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
+        .btn-missed-sell { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
         .btn-good-hold { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
 
         .countdown { font-family: monospace; font-size: 1.5rem; color: var(--primary); text-align: center; margin-bottom: 10px; }
@@ -79,7 +80,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Smart Engine</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Instant Precision</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
@@ -106,18 +107,18 @@
     <div class="container">
         <div class="tabs">
             <div class="tab active" data-tab="dashboard">Live Session</div>
-            <div class="tab" data-tab="learning">AI Memory (Blacklist)</div>
-            <div class="tab" data-tab="history">Full History</div>
+            <div class="tab" data-tab="learning">AI Learning</div>
+            <div class="tab" data-tab="history">History</div>
         </div>
 
-        <!-- DASHBOARD TAB -->
+        <!-- DASHBOARD -->
         <div id="dashboardTab" class="tab-content active">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <h3>Live Market Monitor</h3>
                     <div style="text-align:right;">
-                        <span id="connectionStatus" style="font-size:0.8rem; color:var(--muted);">Connecting...</span>
-                        <div id="countdown" class="countdown">00:00</div>
+                        <span id="connectionStatus" style="font-size:0.8rem; color:var(--muted);">Syncing Time...</span>
+                        <div id="countdown" class="countdown">--:--</div>
                     </div>
                 </div>
                 
@@ -138,41 +139,41 @@
 
                 <div class="ob-container">
                     <div class="ob-text">
-                        <span id="bidPct" style="color:var(--success)">50% Buyers</span>
-                        <span id="askPct" style="color:var(--danger)">50% Sellers</span>
+                        <span id="bidPct" style="color:var(--success)">--% Buyers</span>
+                        <span id="askPct" style="color:var(--danger)">--% Sellers</span>
                     </div>
                     <div class="ob-bar">
                         <div id="obBids" class="ob-bids" style="width: 50%"></div>
                         <div id="obAsks" class="ob-asks" style="width: 50%"></div>
                     </div>
                     <div style="text-align:center; font-size:0.7rem; color:var(--muted); margin-top:5px;">
-                        Real-Time Order Book Imbalance (Updates every 2s)
+                        Real-Time Order Book Imbalance
                     </div>
                 </div>
             </div>
 
             <div id="sessionArea" style="display:none;">
                 <div class="card" style="border-left: 4px solid var(--primary);">
-                    <h3>Active Session Feed</h3>
+                    <h3>Prediction Feed</h3>
                     <p style="color:var(--muted); font-size:0.9rem;">
-                        The AI analyzes candle closes. Feedback improves accuracy immediately.
+                        Generating signals 2 seconds before candle Open to ensure timely execution.
                     </p>
                 </div>
                 <div id="predictionFeed" class="session-feed"></div>
             </div>
         </div>
 
-        <!-- LEARNING TAB -->
+        <!-- LEARNING -->
         <div id="learningTab" class="tab-content">
             <div class="card">
-                <h3>AI Memory (Patterns to Avoid)</h3>
+                <h3>AI Adaptation</h3>
                 <p style="color:var(--muted); font-size:0.9rem;">
-                    When you report a Loss, the AI adds a "Penalty" to similar conditions. It doesn't ignore them, but it becomes stricter.
+                    The AI penalizes patterns that cause losses and boosts patterns that were missed.
                 </p>
                 <div id="blacklistContainer" style="margin-top:15px;"></div>
             </div>
             <div class="card">
-                <h3>Performance Stats</h3>
+                <h3>Performance</h3>
                 <div style="display:grid; grid-template-columns:1fr 1fr 1fr; text-align:center;">
                     <div>Wins: <strong id="totalWins" style="color:var(--success)">0</strong></div>
                     <div>Losses: <strong id="totalLosses" style="color:var(--danger)">0</strong></div>
@@ -181,7 +182,7 @@
             </div>
         </div>
 
-        <!-- HISTORY TAB -->
+        <!-- HISTORY -->
         <div id="historyTab" class="tab-content">
             <div class="card">
                 <div style="display:flex; justify-content:space-between;">
@@ -194,14 +195,14 @@
     </div>
 
     <script>
-        class TwoTUltimate {
+        class TwoTPrecision {
             constructor() {
                 this.symbol = 'BTCUSDT';
                 this.timeframe = '1m';
                 this.isSessionActive = false;
                 this.processing = false;
+                this.timeOffset = 0; 
                 
-                // Persistence
                 this.history = JSON.parse(localStorage.getItem('twot_history')) || [];
                 this.stats = JSON.parse(localStorage.getItem('twot_stats')) || { wins: 0, losses: 0 };
                 this.blacklist = JSON.parse(localStorage.getItem('twot_blacklist')) || [];
@@ -209,15 +210,35 @@
                 this.init();
             }
 
-            init() {
+            async init() {
                 this.setupUI();
                 this.renderStats();
                 this.renderBlacklist();
                 this.renderHistory();
+                await this.syncTime();
                 this.startLiveMonitor();
             }
 
-            // ============ 1. LIVE MONITOR ============
+            // ============ 1. PRECISION TIME SYNC ============
+            async syncTime() {
+                try {
+                    const start = Date.now();
+                    const res = await fetch('https://api.binance.com/api/v3/time');
+                    const data = await res.json();
+                    const end = Date.now();
+                    // Calculate difference between local and server
+                    this.timeOffset = (data.serverTime - end) + ((end - start) / 2);
+                    console.log('Time Offset:', this.timeOffset);
+                } catch (e) {
+                    console.log('Using local time (sync failed)');
+                }
+            }
+
+            getCorrectTime() {
+                return Date.now() + this.timeOffset;
+            }
+
+            // ============ 2. LIVE MONITOR ============
             startLiveMonitor() {
                 this.updateMonitor();
                 setInterval(() => this.updateMonitor(), 2000);
@@ -234,7 +255,7 @@
                     const depth = await depthRes.json();
 
                     document.getElementById('livePrice').innerText = parseFloat(ticker.price).toFixed(2);
-                    document.getElementById('connectionStatus').innerText = 'Live ⚡';
+                    document.getElementById('connectionStatus').innerText = 'Live (Synced) ⚡';
                     document.getElementById('connectionStatus').style.color = '#10b981';
 
                     const bids = depth.bids.reduce((a, b) => a + parseFloat(b[1]), 0);
@@ -253,22 +274,26 @@
             }
 
             updateCountdown() {
-                const now = new Date();
-                const ms = now.getTime();
+                const now = this.getCorrectTime();
                 const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
                 const intervalMs = map[this.timeframe] || 3600000;
                 
-                const timeToNext = intervalMs - (ms % intervalMs);
+                // Time remaining until next candle
+                const timeToNext = intervalMs - (now % intervalMs);
+                
                 const seconds = Math.floor((timeToNext / 1000) % 60);
                 const minutes = Math.floor((timeToNext / 1000 / 60));
                 document.getElementById('countdown').innerText = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
 
-                // AUTO-TRIGGER Logic
-                if (this.isSessionActive && timeToNext > (intervalMs - 2000) && timeToNext < (intervalMs - 500)) {
+                // TRIGGER LOGIC: Fire 2 seconds BEFORE the candle close
+                // This ensures the prediction is on screen exactly when the new candle opens
+                if (this.isSessionActive && timeToNext < 2500) {
                     if (!this.processing) {
                         this.processing = true;
-                        this.generateSignal();
-                        setTimeout(() => this.processing = false, 3000);
+                        // Calculate what the NEXT candle time will be
+                        const nextCandleTime = now + timeToNext; 
+                        this.generateSignal(nextCandleTime);
+                        setTimeout(() => this.processing = false, 5000); // Debounce
                     }
                 }
             }
@@ -281,27 +306,33 @@
                 
                 if(this.isSessionActive) {
                     startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block'; area.style.display = 'flex';
-                    // Force a countdown update immediately so the user sees correct time
-                    this.updateCountdown();
-                    // If the candle is mid-way, wait for next close. If user wants instant, they can wait or we can trigger one now.
-                    // To stick to "Sequential", we should wait for the next close, but display "Waiting for Close..."
-                    const feed = document.getElementById('predictionFeed');
-                    feed.innerHTML = '<div class="card" style="opacity:0.7; font-style:italic;">Session Started. Waiting for next candle close...</div>';
+                    
+                    // Generate IMMEDIATE signal for the CURRENT candle
+                    const now = this.getCorrectTime();
+                    const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
+                    const intervalMs = map[this.timeframe] || 3600000;
+                    // Round down to nearest candle start
+                    const currentCandleStart = now - (now % intervalMs);
+                    
+                    this.generateSignal(currentCandleStart);
                 } else {
                     startBtn.style.display = 'inline-block'; stopBtn.style.display = 'none';
                 }
             }
 
-            // ============ 2. CORE ENGINE ============
-            async generateSignal() {
-                // Clear the "Waiting" message if it's the first one
-                if(document.querySelector('#predictionFeed').innerText.includes("Waiting")) {
-                     document.querySelector('#predictionFeed').innerHTML = "";
-                }
-
+            // ============ 3. ULTIMATE LOGIC ============
+            async generateSignal(targetTimeMs) {
                 const feed = document.getElementById('predictionFeed');
                 const loadId = 'loading-' + Date.now();
-                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Scanning Market...</span></div>`);
+                
+                // Clean feed
+                if(document.getElementById('predictionFeed').childElementCount > 50) document.getElementById('predictionFeed').lastChild.remove();
+                
+                // Calculate Target Time Display
+                const dateObj = new Date(targetTimeMs);
+                const targetTimeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Calculating for ${targetTimeStr}...</span></div>`);
 
                 try {
                     const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=100`);
@@ -325,14 +356,14 @@
                     const atr = this.calculateATR(klines);
                     const current = klines[klines.length-1].close;
 
-                    // SNAPSHOT (For Learning)
+                    // SNAPSHOT
                     const snapshot = {
                         btcTrend,
                         rsiState: rsi > 70 ? 'Over' : rsi < 30 ? 'Under' : 'Mid',
                         chopState: chop > 60 ? 'High' : 'Low'
                     };
 
-                    // PENALTY CHECK (Replaces Hard Skip)
+                    // PENALTY CHECK (Soft Learning)
                     let penalty = 0;
                     const isMistake = this.blacklist.some(b => 
                         b.btcTrend === snapshot.btcTrend && 
@@ -340,58 +371,63 @@
                         b.chopState === snapshot.chopState
                     );
                     if(isMistake) {
-                        penalty = 0.3; // Deduct points instead of skipping
+                        penalty = 0.2; 
                     }
 
                     // WEIGHTED SCORING
                     let score = 0;
                     let reasons = [];
 
-                    // 1. Trend (VWAP) - 50% Weight (Increased)
-                    if(current > vwap) { score += 0.5; reasons.push("Above VWAP (Bullish)"); }
-                    else { score -= 0.5; reasons.push("Below VWAP (Bearish)"); }
+                    // 1. Trend (VWAP) - 50%
+                    if(current > vwap) { score += 0.5; reasons.push("Trend: Bullish (Above VWAP)"); }
+                    else { score -= 0.5; reasons.push("Trend: Bearish (Below VWAP)"); }
 
-                    // 2. RSI - 20% Weight
-                    if(rsi < 40) { score += 0.2; reasons.push("RSI Buy Zone"); }
-                    else if(rsi > 60) { score -= 0.2; reasons.push("RSI Sell Zone"); }
+                    // 2. Order Book - 20%
+                    const bidWidth = parseFloat(document.getElementById('obBids').style.width);
+                    if(bidWidth > 55) { score += 0.2; reasons.push("OB: Buying Pressure"); }
+                    else if(bidWidth < 45) { score -= 0.2; reasons.push("OB: Selling Pressure"); }
 
-                    // 3. BTC Alignment - 30% Weight
-                    if(btcTrend === 'BULLISH') score += 0.3;
-                    if(btcTrend === 'BEARISH') score -= 0.3;
+                    // 3. RSI - 20%
+                    if(rsi < 40) { score += 0.2; reasons.push("Momentum: Buy Zone"); }
+                    else if(rsi > 60) { score -= 0.2; reasons.push("Momentum: Sell Zone"); }
 
-                    // APPLY PENALTY
-                    if(isMistake) {
+                    // 4. BTC - 20%
+                    if(btcTrend === 'BULLISH') score += 0.2;
+                    if(btcTrend === 'BEARISH') score -= 0.2;
+
+                    // Apply Penalty
+                    if(penalty > 0) {
                         if(score > 0) score -= penalty;
                         if(score < 0) score += penalty;
-                        reasons.push(`⚠ Penalty Applied (${penalty}): Past Failure Detected`);
+                        reasons.push(`⚠ Reduced Confidence (Past Failure)`);
                     }
 
-                    // SIGNAL GENERATION (Lower Threshold for entry)
+                    // DECISION
                     let signal = 'HOLD';
                     let type = 'HOLD';
 
-                    // Strict Chop Filter (Keep this as only Hard Skip)
+                    // Hard Chop Filter
                     if(chop > 65) {
-                        reasons.push("Market Too Choppy (>65)");
-                        // Force HOLD if choppy, regardless of score
+                        reasons.push("Market Too Choppy");
                         score = 0; 
                     }
 
-                    if(score >= 0.15) { signal = 'BUY'; type = 'BUY'; }
-                    else if(score <= -0.15) { signal = 'SELL'; type = 'SELL'; }
+                    // Thresholds
+                    if(score >= 0.2) { signal = 'BUY'; type = 'BUY'; }
+                    else if(score <= -0.2) { signal = 'SELL'; type = 'SELL'; }
 
-                    // RISK MANAGEMENT
+                    // RISK
                     let stopLoss = 0, takeProfit = 0;
                     if(signal === 'BUY') {
-                        stopLoss = current - (atr * 2);
-                        takeProfit = current + (atr * 3);
+                        stopLoss = current - (atr * 1.5);
+                        takeProfit = current + (atr * 2.5);
                     } else if(signal === 'SELL') {
-                        stopLoss = current + (atr * 2);
-                        takeProfit = current - (atr * 3);
+                        stopLoss = current + (atr * 1.5);
+                        takeProfit = current - (atr * 2.5);
                     }
 
                     document.getElementById(loadId).remove();
-                    this.renderCard(signal, type, current, (Math.abs(score)*100).toFixed(0), reasons, snapshot, stopLoss, takeProfit);
+                    this.renderCard(signal, type, current, (Math.abs(score)*100).toFixed(0), reasons, snapshot, stopLoss, takeProfit, targetTimeStr);
 
                 } catch (e) {
                     console.error(e);
@@ -399,15 +435,16 @@
                 }
             }
 
-            // ============ 3. UI & DATA ============
-            renderCard(signal, type, price, conf, reasons, snapshot, sl, tp) {
+            // ============ 4. UI & DATA ============
+            renderCard(signal, type, price, conf, reasons, snapshot, sl, tp, timeStr) {
                 const id = Date.now();
-                const record = { id, time: new Date().toLocaleString(), symbol: this.symbol, type, price, status: 'Pending', snapshot };
+                
+                const record = { id, time: timeStr, symbol: this.symbol, type, price, status: 'Pending', snapshot };
                 this.history.unshift(record);
                 localStorage.setItem('twot_history', JSON.stringify(this.history));
                 this.renderHistory();
 
-                // Feedback buttons depend on type
+                // Dynamic Buttons
                 let buttons = '';
                 if(type === 'BUY' || type === 'SELL') {
                     buttons = `
@@ -415,11 +452,10 @@
                         <button class="btn-mini btn-loss" onclick="app.handleFeedback(${id}, 'Loss')">❌ Loss</button>
                     `;
                 } else {
-                    // HOLD Feedback
                     buttons = `
-                        <button class="btn-mini btn-missed-buy" onclick="app.handleFeedback(${id}, 'Missed Buy')">↗ Should've Bought</button>
-                        <button class="btn-mini btn-missed-buy" onclick="app.handleFeedback(${id}, 'Missed Sell')">↘ Should've Sold</button>
-                        <button class="btn-mini btn-good-hold" onclick="app.handleFeedback(${id}, 'Good Hold')">✔ Good Hold</button>
+                        <button class="btn-mini btn-missed-buy" onclick="app.handleFeedback(${id}, 'Missed Buy')">↗ Missed Buy</button>
+                        <button class="btn-mini btn-missed-sell" onclick="app.handleFeedback(${id}, 'Missed Sell')">↘ Missed Sell</button>
+                        <button class="btn-mini btn-good-hold" onclick="app.handleFeedback(${id}, 'Good Hold')">✔ Correct Hold</button>
                     `;
                 }
 
@@ -427,27 +463,25 @@
                     <div id="card-${id}" class="prediction-card ${type}">
                         <div class="pred-header">
                             <span class="pred-type">${signal}</span>
-                            <span style="font-size:0.8rem; opacity:0.7;">${new Date().toLocaleTimeString()}</span>
+                            <span style="font-size:0.9rem; font-weight:bold; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">Target: ${timeStr}</span>
                         </div>
                         
                         ${(type === 'BUY' || type === 'SELL') ? `
                         <div class="risk-grid">
                             <div>Entry<br><strong>$${price.toFixed(2)}</strong></div>
-                            <div>Stop Loss<br><strong style="color:var(--danger)">$${sl.toFixed(2)}</strong></div>
-                            <div>Take Profit<br><strong style="color:var(--success)">$${tp.toFixed(2)}</strong></div>
+                            <div>SL<br><strong style="color:var(--danger)">$${sl.toFixed(2)}</strong></div>
+                            <div>TP<br><strong style="color:var(--success)">$${tp.toFixed(2)}</strong></div>
                         </div>
                         ` : `
                         <div style="font-size:0.9rem; margin-bottom:10px;">
-                            Price: <strong>$${price}</strong> | Score: <strong>${conf}</strong>
+                            Current: <strong>$${price}</strong> | Score: <strong>${conf}</strong>
                         </div>
                         `}
 
                         <ul style="font-size:0.8rem; color:var(--muted); margin-left:15px; margin-bottom:10px;">
                             ${reasons.map(r => `<li>${r}</li>`).join('')}
                         </ul>
-                        <div class="feedback-area">
-                            ${buttons}
-                        </div>
+                        <div class="feedback-area">${buttons}</div>
                     </div>
                 `;
                 document.getElementById('predictionFeed').insertAdjacentHTML('afterbegin', html);
@@ -460,8 +494,7 @@
                     const badge = document.createElement('div');
                     badge.innerText = result.toUpperCase();
                     badge.style.textAlign='center'; badge.style.fontWeight='bold';
-                    badge.style.color = (result === 'Win' || result === 'Good Hold') ? 'var(--success)' : 'var(--danger)';
-                    if(result.includes('Missed')) badge.style.color = 'var(--primary)';
+                    badge.style.color = result.includes('Win') || result.includes('Good') ? 'var(--success)' : result.includes('Missed') ? 'var(--primary)' : 'var(--danger)';
                     card.appendChild(badge);
                 }
 
@@ -469,35 +502,29 @@
                 if(idx === -1) return;
                 this.history[idx].status = result;
                 
-                // UPDATE STATS & LEARNING
                 if(result === 'Win') this.stats.wins++; 
                 else if(result === 'Loss') this.stats.losses++;
 
-                // LEARNING LOGIC
+                // LEARNING
                 const snap = this.history[idx].snapshot;
 
                 if(result === 'Loss') {
-                    // Add to Memory (Penalty next time)
-                    const exists = this.blacklist.some(b => b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState && b.chopState === snap.chopState);
+                    const exists = this.blacklist.some(b => b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState);
                     if(!exists) {
                         this.blacklist.push({ ...snap, count: 1 });
-                        alert("AI Learning: Condition penalized for future.");
                     }
-                } else if (result === 'Missed Buy' || result === 'Missed Sell') {
-                    // Remove from Memory (It was actually good!)
-                    const initialLen = this.blacklist.length;
-                    this.blacklist = this.blacklist.filter(b => !(b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState && b.chopState === snap.chopState));
-                    if(this.blacklist.length < initialLen) {
-                        alert("AI Learning: Restrictions removed for this condition.");
-                    }
+                } else if (result.includes('Missed')) {
+                    // Cleanse Blacklist
+                    const initLen = this.blacklist.length;
+                    this.blacklist = this.blacklist.filter(b => !(b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState));
+                    if(this.blacklist.length < initLen) alert("AI Adjusted: Penalty Removed.");
                 }
 
                 localStorage.setItem('twot_blacklist', JSON.stringify(this.blacklist));
-                this.renderBlacklist();
-
                 localStorage.setItem('twot_history', JSON.stringify(this.history));
                 localStorage.setItem('twot_stats', JSON.stringify(this.stats));
                 this.renderStats();
+                this.renderBlacklist();
                 this.renderHistory();
             }
 
@@ -506,14 +533,14 @@
                 if(this.blacklist.length === 0) { div.innerHTML='<div style="text-align:center;color:var(--muted)">No penalties active.</div>'; return; }
                 div.innerHTML = this.blacklist.map(b => `
                     <div style="background:rgba(239,68,68,0.1); padding:8px; border-radius:4px; margin-bottom:5px; font-size:0.8rem; border-left:3px solid var(--danger)">
-                        Caution: BTC ${b.btcTrend} + RSI ${b.rsiState} + Chop ${b.chopState}
+                        Penalty: BTC ${b.btcTrend} + RSI ${b.rsiState}
                     </div>`).join('');
             }
 
             renderHistory() {
                 document.getElementById('historyList').innerHTML = this.history.slice(0,10).map(h => `
                     <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:4px; font-size:0.85rem; display:flex; justify-content:space-between;">
-                        <span>${h.time.split(',')[1]} - ${h.symbol}</span>
+                        <span>${h.time} - ${h.symbol}</span>
                         <strong style="color:${h.type==='BUY'?'var(--success)':h.type==='SELL'?'var(--danger)':'var(--muted)'}">${h.type}</strong>
                         <span>${h.status}</span>
                     </div>
@@ -530,7 +557,7 @@
 
             clearHistory() { if(confirm('Clear all data?')) { localStorage.clear(); location.reload(); } }
 
-            // MATH HELPERS
+            // HELPERS
             formatKlines(d) { return d.map(k => ({time:k[0], open:parseFloat(k[1]), high:parseFloat(k[2]), low:parseFloat(k[3]), close:parseFloat(k[4]), volume:parseFloat(k[5])})); }
             calculateSMA(d, p) { if(d.length<p)return d[0].close; return d.slice(-p).reduce((a,b)=>a+b.close,0)/p; }
             calculateRSI(d) { let g=0,l=0; for(let i=d.length-14;i<d.length;i++){const x=d[i].close-d[i-1].close; x>0?g+=x:l-=x;} return 100-(100/(1+(g/14)/(l/14||1))); }
@@ -549,7 +576,7 @@
                 });
             }
         }
-        const app = new TwoTUltimate();
+        const app = new TwoTPrecision();
     </script>
 </body>
 </html>
