@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Future Precision</title>
+    <title>TwoT AI - Robust Engine</title>
     <style>
         /* --- DARK THEME --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
@@ -52,7 +52,7 @@
         .prediction-card.BUY { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
         .prediction-card.SELL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
         .prediction-card.HOLD { border-left-color: var(--warning); }
-        .prediction-card.SKIP { border-left-color: #475569; opacity: 0.7; }
+        .prediction-card.ERROR { border-left-color: #ef4444; }
 
         .pred-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .pred-type { font-weight: 900; font-size: 1.1rem; }
@@ -81,7 +81,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Future Precision</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Robust Engine</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
@@ -98,8 +98,8 @@
                         <option value="4h">4 Hours</option>
                         <option value="1d">1 Day</option>
                     </select>
-                    <button id="startBtn" class="btn-primary">▶ Start Session</button>
-                    <button id="stopBtn" class="btn-stop">⏹ Stop</button>
+                    <button id="startBtn" class="btn-primary">▶ Start Auto-Session</button>
+                    <button id="stopBtn" class="btn-stop">⏹ Stop Session</button>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 <div class="card" style="border-left: 4px solid var(--primary);">
                     <h3>Prediction Feed</h3>
                     <p style="color:var(--muted); font-size:0.9rem;">
-                        Predictions target the <strong>NEXT</strong> candle open to ensure you are never late.
+                        Signals generate for the <strong>Future Candle</strong>.
                     </p>
                 </div>
                 <div id="predictionFeed" class="session-feed"></div>
@@ -251,6 +251,9 @@
                         fetch(`/proxy/ticker?symbol=${this.symbol}`),
                         fetch(`/proxy/depth?symbol=${this.symbol}&limit=50`)
                     ]);
+                    
+                    if(!tickRes.ok || !depthRes.ok) throw new Error("Server/Binance API Error");
+
                     const ticker = await tickRes.json();
                     const depth = await depthRes.json();
 
@@ -283,11 +286,9 @@
                 const minutes = Math.floor((timeToNext / 1000 / 60));
                 document.getElementById('countdown').innerText = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
 
-                // TRIGGER LOGIC: 2s before Close
                 if (this.isSessionActive && timeToNext < 2500) {
                     if (!this.processing) {
                         this.processing = true;
-                        // Predict for the NEXT candle
                         const nextCandleTime = now + timeToNext; 
                         this.generateSignal(nextCandleTime);
                         setTimeout(() => this.processing = false, 5000); 
@@ -304,12 +305,9 @@
                 if(this.isSessionActive) {
                     startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block'; area.style.display = 'flex';
                     
-                    // IMMEDIATE START LOGIC (Fixed to point to FUTURE)
                     const now = this.getCorrectTime();
                     const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
                     const intervalMs = map[this.timeframe] || 3600000;
-                    
-                    // Calculate Next Candle Start Time
                     const currentCandleStart = now - (now % intervalMs);
                     const nextCandleStart = currentCandleStart + intervalMs;
                     
@@ -326,23 +324,35 @@
                 
                 if(document.getElementById('predictionFeed').childElementCount > 50) document.getElementById('predictionFeed').lastChild.remove();
                 
-                // Format the Target Time
                 const dateObj = new Date(targetTimeMs);
                 const targetTimeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
                 feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Analyzing for ${targetTimeStr}...</span></div>`);
 
                 try {
+                    // Safely Fetch Klines
                     const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=100`);
-                    const klines = this.formatKlines(await res.json());
+                    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
+                    
+                    const data = await res.json();
+                    if (!Array.isArray(data)) throw new Error('Server returned invalid data (Sleeping?)');
+                    
+                    const klines = this.formatKlines(data);
                     
                     // BTC FILTER
                     let btcTrend = 'NEUTRAL';
                     if (this.symbol !== 'BTCUSDT') {
-                        const bRes = await fetch(`/proxy/klines?symbol=BTCUSDT&interval=${this.timeframe}&limit=50`);
-                        const bKlines = this.formatKlines(await bRes.json());
-                        const bSma = this.calculateSMA(bKlines, 20);
-                        btcTrend = bKlines[bKlines.length-1].close > bSma ? 'BULLISH' : 'BEARISH';
+                        try {
+                            const bRes = await fetch(`/proxy/klines?symbol=BTCUSDT&interval=${this.timeframe}&limit=50`);
+                            if(bRes.ok) {
+                                const bData = await bRes.json();
+                                if(Array.isArray(bData)) {
+                                    const bKlines = this.formatKlines(bData);
+                                    const bSma = this.calculateSMA(bKlines, 20);
+                                    btcTrend = bKlines[bKlines.length-1].close > bSma ? 'BULLISH' : 'BEARISH';
+                                }
+                            }
+                        } catch(e) { console.log('BTC fetch failed, ignoring'); }
                     }
                     document.getElementById('btcTrend').innerText = btcTrend;
                     document.getElementById('btcTrend').style.color = btcTrend === 'BULLISH' ? 'var(--success)' : 'var(--danger)';
@@ -361,39 +371,32 @@
                         chopState: chop > 60 ? 'High' : 'Low'
                     };
 
-                    // PENALTY CHECK
+                    // PENALTY
                     let penalty = 0;
                     const isMistake = this.blacklist.some(b => 
                         b.btcTrend === snapshot.btcTrend && 
                         b.rsiState === snapshot.rsiState &&
                         b.chopState === snapshot.chopState
                     );
-                    if(isMistake) {
-                        penalty = 0.2; 
-                    }
+                    if(isMistake) penalty = 0.2; 
 
-                    // WEIGHTED SCORING
+                    // SCORING
                     let score = 0;
                     let reasons = [];
 
-                    // 1. Trend (VWAP) - 50%
                     if(current > vwap) { score += 0.5; reasons.push("Trend: Bullish (Above VWAP)"); }
                     else { score -= 0.5; reasons.push("Trend: Bearish (Below VWAP)"); }
 
-                    // 2. Order Book - 20%
-                    const bidWidth = parseFloat(document.getElementById('obBids').style.width);
+                    const bidWidth = parseFloat(document.getElementById('obBids').style.width) || 50;
                     if(bidWidth > 55) { score += 0.2; reasons.push("OB: Buying Pressure"); }
                     else if(bidWidth < 45) { score -= 0.2; reasons.push("OB: Selling Pressure"); }
 
-                    // 3. RSI - 20%
                     if(rsi < 40) { score += 0.2; reasons.push("Momentum: Buy Zone"); }
                     else if(rsi > 60) { score -= 0.2; reasons.push("Momentum: Sell Zone"); }
 
-                    // 4. BTC - 20%
                     if(btcTrend === 'BULLISH') score += 0.2;
                     if(btcTrend === 'BEARISH') score -= 0.2;
 
-                    // Apply Penalty
                     if(penalty > 0) {
                         if(score > 0) score -= penalty;
                         if(score < 0) score += penalty;
@@ -427,7 +430,15 @@
 
                 } catch (e) {
                     console.error(e);
-                    document.getElementById(loadId).innerText = "Error.";
+                    const el = document.getElementById(loadId);
+                    if(el) {
+                        el.className = "prediction-card ERROR";
+                        el.innerHTML = `
+                            <div style="color:#ef4444; font-weight:bold;">DATA ERROR</div>
+                            <div style="font-size:0.8rem;">${e.message}</div>
+                            <div style="font-size:0.7rem; color:var(--muted);">Check Server / Internet</div>
+                        `;
+                    }
                 }
             }
 
@@ -440,7 +451,6 @@
                 localStorage.setItem('twot_history', JSON.stringify(this.history));
                 this.renderHistory();
 
-                // Dynamic Buttons
                 let buttons = '';
                 if(type === 'BUY' || type === 'SELL') {
                     buttons = `
@@ -501,7 +511,6 @@
                 if(result === 'Win') this.stats.wins++; 
                 else if(result === 'Loss') this.stats.losses++;
 
-                // LEARNING
                 const snap = this.history[idx].snapshot;
 
                 if(result === 'Loss') {
