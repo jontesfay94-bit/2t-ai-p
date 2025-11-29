@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Robust Engine</title>
+    <title>TwoT AI - Post-Close Precision</title>
     <style>
         /* --- DARK THEME --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
@@ -52,7 +52,7 @@
         .prediction-card.BUY { border-left-color: var(--success); background: rgba(16, 185, 129, 0.05); }
         .prediction-card.SELL { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
         .prediction-card.HOLD { border-left-color: var(--warning); }
-        .prediction-card.ERROR { border-left-color: #ef4444; }
+        .prediction-card.SKIP { border-left-color: #475569; opacity: 0.7; }
 
         .pred-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .pred-type { font-weight: 900; font-size: 1.1rem; }
@@ -81,7 +81,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Robust Engine</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Post-Close Engine</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
@@ -98,8 +98,8 @@
                         <option value="4h">4 Hours</option>
                         <option value="1d">1 Day</option>
                     </select>
-                    <button id="startBtn" class="btn-primary">▶ Start Auto-Session</button>
-                    <button id="stopBtn" class="btn-stop">⏹ Stop Session</button>
+                    <button id="startBtn" class="btn-primary">▶ Start Session</button>
+                    <button id="stopBtn" class="btn-stop">⏹ Stop</button>
                 </div>
             </div>
         </div>
@@ -157,7 +157,7 @@
                 <div class="card" style="border-left: 4px solid var(--primary);">
                     <h3>Prediction Feed</h3>
                     <p style="color:var(--muted); font-size:0.9rem;">
-                        Signals generate for the <strong>Future Candle</strong>.
+                        Signals generated 1 second <strong>AFTER</strong> candle close for maximum data accuracy.
                     </p>
                 </div>
                 <div id="predictionFeed" class="session-feed"></div>
@@ -251,9 +251,6 @@
                         fetch(`/proxy/ticker?symbol=${this.symbol}`),
                         fetch(`/proxy/depth?symbol=${this.symbol}&limit=50`)
                     ]);
-                    
-                    if(!tickRes.ok || !depthRes.ok) throw new Error("Server/Binance API Error");
-
                     const ticker = await tickRes.json();
                     const depth = await depthRes.json();
 
@@ -282,15 +279,22 @@
                 const intervalMs = map[this.timeframe] || 3600000;
                 
                 const timeToNext = intervalMs - (now % intervalMs);
+                
+                // Timer display logic
                 const seconds = Math.floor((timeToNext / 1000) % 60);
                 const minutes = Math.floor((timeToNext / 1000 / 60));
                 document.getElementById('countdown').innerText = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
 
-                if (this.isSessionActive && timeToNext < 2500) {
+                // TRIGGER LOGIC: 1 SECOND AFTER OPEN (timeToNext approx intervalMs - 1000)
+                // Or simpler: Time passed since open = intervalMs - timeToNext
+                const timePassed = intervalMs - timeToNext;
+                
+                if (this.isSessionActive && timePassed > 1000 && timePassed < 3000) {
                     if (!this.processing) {
                         this.processing = true;
-                        const nextCandleTime = now + timeToNext; 
-                        this.generateSignal(nextCandleTime);
+                        // We analyze NOW for the candle that JUST started
+                        const currentCandleTime = now - timePassed; 
+                        this.generateSignal(currentCandleTime);
                         setTimeout(() => this.processing = false, 5000); 
                     }
                 }
@@ -305,19 +309,19 @@
                 if(this.isSessionActive) {
                     startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block'; area.style.display = 'flex';
                     
+                    // IMMEDIATE START Logic
                     const now = this.getCorrectTime();
                     const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
                     const intervalMs = map[this.timeframe] || 3600000;
                     const currentCandleStart = now - (now % intervalMs);
-                    const nextCandleStart = currentCandleStart + intervalMs;
                     
-                    this.generateSignal(nextCandleStart);
+                    this.generateSignal(currentCandleStart);
                 } else {
                     startBtn.style.display = 'inline-block'; stopBtn.style.display = 'none';
                 }
             }
 
-            // ============ 3. ULTIMATE LOGIC ============
+            // ============ 3. LOGIC ENGINE ============
             async generateSignal(targetTimeMs) {
                 const feed = document.getElementById('predictionFeed');
                 const loadId = 'loading-' + Date.now();
@@ -327,42 +331,38 @@
                 const dateObj = new Date(targetTimeMs);
                 const targetTimeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Analyzing for ${targetTimeStr}...</span></div>`);
+                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Calculating for ${targetTimeStr}...</span></div>`);
 
                 try {
-                    // Safely Fetch Klines
                     const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=100`);
-                    if (!res.ok) throw new Error(`HTTP Error ${res.status}`);
-                    
                     const data = await res.json();
-                    if (!Array.isArray(data)) throw new Error('Server returned invalid data (Sleeping?)');
-                    
                     const klines = this.formatKlines(data);
                     
-                    // BTC FILTER
+                    // === DATA INTEGRITY FIX ===
+                    // Remove the last candle because it is "Moving" (Not Closed)
+                    // We want to predict the NEW candle based on COMPLETED history
+                    const finishedKlines = klines.slice(0, -1); 
+                    
+                    // BTC FILTER (Using Finished Data)
                     let btcTrend = 'NEUTRAL';
                     if (this.symbol !== 'BTCUSDT') {
                         try {
                             const bRes = await fetch(`/proxy/klines?symbol=BTCUSDT&interval=${this.timeframe}&limit=50`);
-                            if(bRes.ok) {
-                                const bData = await bRes.json();
-                                if(Array.isArray(bData)) {
-                                    const bKlines = this.formatKlines(bData);
-                                    const bSma = this.calculateSMA(bKlines, 20);
-                                    btcTrend = bKlines[bKlines.length-1].close > bSma ? 'BULLISH' : 'BEARISH';
-                                }
-                            }
-                        } catch(e) { console.log('BTC fetch failed, ignoring'); }
+                            const bData = await bRes.json();
+                            const bKlines = this.formatKlines(bData).slice(0, -1); // Remove moving candle
+                            const bSma = this.calculateSMA(bKlines, 20);
+                            btcTrend = bKlines[bKlines.length-1].close > bSma ? 'BULLISH' : 'BEARISH';
+                        } catch(e) {}
                     }
                     document.getElementById('btcTrend').innerText = btcTrend;
                     document.getElementById('btcTrend').style.color = btcTrend === 'BULLISH' ? 'var(--success)' : 'var(--danger)';
 
-                    // METRICS
-                    const vwap = this.calculateVWAP(klines);
-                    const rsi = this.calculateRSI(klines);
-                    const chop = this.calculateChoppiness(klines);
-                    const atr = this.calculateATR(klines);
-                    const current = klines[klines.length-1].close;
+                    // METRICS (On Finished Data)
+                    const vwap = this.calculateVWAP(finishedKlines);
+                    const rsi = this.calculateRSI(finishedKlines);
+                    const chop = this.calculateChoppiness(finishedKlines);
+                    const atr = this.calculateATR(finishedKlines);
+                    const closePrice = finishedKlines[finishedKlines.length-1].close; // Last closed price
 
                     // SNAPSHOT
                     const snapshot = {
@@ -384,7 +384,7 @@
                     let score = 0;
                     let reasons = [];
 
-                    if(current > vwap) { score += 0.5; reasons.push("Trend: Bullish (Above VWAP)"); }
+                    if(closePrice > vwap) { score += 0.5; reasons.push("Trend: Bullish (Above VWAP)"); }
                     else { score -= 0.5; reasons.push("Trend: Bearish (Below VWAP)"); }
 
                     const bidWidth = parseFloat(document.getElementById('obBids').style.width) || 50;
@@ -403,7 +403,7 @@
                         reasons.push(`⚠ Reduced Confidence (Past Failure)`);
                     }
 
-                    // DECISION
+                    // DECISION (Tighter Threshold for Accuracy)
                     let signal = 'HOLD';
                     let type = 'HOLD';
 
@@ -412,33 +412,26 @@
                         score = 0; 
                     }
 
-                    if(score >= 0.2) { signal = 'BUY'; type = 'BUY'; }
-                    else if(score <= -0.2) { signal = 'SELL'; type = 'SELL'; }
+                    // Updated Threshold: 0.35 ensures better quality
+                    if(score >= 0.35) { signal = 'BUY'; type = 'BUY'; }
+                    else if(score <= -0.35) { signal = 'SELL'; type = 'SELL'; }
 
                     // RISK
                     let stopLoss = 0, takeProfit = 0;
                     if(signal === 'BUY') {
-                        stopLoss = current - (atr * 1.5);
-                        takeProfit = current + (atr * 2.5);
+                        stopLoss = closePrice - (atr * 1.5);
+                        takeProfit = closePrice + (atr * 2.5);
                     } else if(signal === 'SELL') {
-                        stopLoss = current + (atr * 1.5);
-                        takeProfit = current - (atr * 2.5);
+                        stopLoss = closePrice + (atr * 1.5);
+                        takeProfit = closePrice - (atr * 2.5);
                     }
 
                     document.getElementById(loadId).remove();
-                    this.renderCard(signal, type, current, (Math.abs(score)*100).toFixed(0), reasons, snapshot, stopLoss, takeProfit, targetTimeStr);
+                    this.renderCard(signal, type, closePrice, (Math.abs(score)*100).toFixed(0), reasons, snapshot, stopLoss, takeProfit, targetTimeStr);
 
                 } catch (e) {
                     console.error(e);
-                    const el = document.getElementById(loadId);
-                    if(el) {
-                        el.className = "prediction-card ERROR";
-                        el.innerHTML = `
-                            <div style="color:#ef4444; font-weight:bold;">DATA ERROR</div>
-                            <div style="font-size:0.8rem;">${e.message}</div>
-                            <div style="font-size:0.7rem; color:var(--muted);">Check Server / Internet</div>
-                        `;
-                    }
+                    document.getElementById(loadId).innerText = "Error.";
                 }
             }
 
@@ -469,18 +462,18 @@
                     <div id="card-${id}" class="prediction-card ${type}">
                         <div class="pred-header">
                             <span class="pred-type">${signal}</span>
-                            <span style="font-size:0.9rem; font-weight:bold; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">Target: ${timeStr}</span>
+                            <span style="font-size:0.9rem; font-weight:bold; background:rgba(0,0,0,0.3); padding:2px 6px; border-radius:4px;">${timeStr}</span>
                         </div>
                         
                         ${(type === 'BUY' || type === 'SELL') ? `
                         <div class="risk-grid">
-                            <div>Entry<br><strong>$${price.toFixed(2)}</strong></div>
+                            <div>Open<br><strong>$${price.toFixed(2)}</strong></div>
                             <div>SL<br><strong style="color:var(--danger)">$${sl.toFixed(2)}</strong></div>
                             <div>TP<br><strong style="color:var(--success)">$${tp.toFixed(2)}</strong></div>
                         </div>
                         ` : `
                         <div style="font-size:0.9rem; margin-bottom:10px;">
-                            Current: <strong>$${price}</strong> | Score: <strong>${conf}</strong>
+                            Ref Price: <strong>$${price}</strong> | Score: <strong>${conf}</strong>
                         </div>
                         `}
 
@@ -514,11 +507,13 @@
                 const snap = this.history[idx].snapshot;
 
                 if(result === 'Loss') {
+                    // ADD PENALTY - Don't delete anything
                     const exists = this.blacklist.some(b => b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState);
                     if(!exists) {
                         this.blacklist.push({ ...snap, count: 1 });
                     }
                 } else if (result.includes('Missed')) {
+                    // REMOVE PENALTY Logic: Only remove if matches perfectly
                     const initLen = this.blacklist.length;
                     this.blacklist = this.blacklist.filter(b => !(b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState));
                     if(this.blacklist.length < initLen) alert("AI Adjusted: Penalty Removed.");
