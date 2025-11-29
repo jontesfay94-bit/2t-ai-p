@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Momentum Engine</title>
+    <title>TwoT AI - Restored SMC Engine</title>
     <style>
         /* --- DARK THEME --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
@@ -15,7 +15,6 @@
         .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         h1 { background: linear-gradient(90deg, var(--primary), var(--success)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-weight: 800; }
 
-        /* CONTROLS */
         .controls { display: flex; gap: 10px; flex-wrap: wrap; }
         select, button { padding: 10px 15px; border-radius: 8px; border: 1px solid #475569; background: var(--card); color: white; font-weight: 600; cursor: pointer; }
         .btn-primary { background: var(--primary); border: none; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
@@ -23,7 +22,6 @@
         .btn-stop { background: var(--danger); border: none; display: none; }
         .btn-clear { background: #475569; border: none; font-size: 0.8rem; }
 
-        /* TABS */
         .tabs { display: flex; gap: 20px; margin: 20px 0; border-bottom: 1px solid #334155; }
         .tab { padding: 10px 0; cursor: pointer; color: var(--muted); position: relative; }
         .tab.active { color: var(--primary); font-weight: bold; }
@@ -63,7 +61,6 @@
         .btn-mini { flex: 1; padding: 8px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; opacity: 0.9; font-size: 0.8rem; }
         .btn-mini:hover { opacity: 1; }
         
-        /* Result colors */
         .btn-win { background: rgba(16, 185, 129, 0.2); color: var(--success); }
         .btn-loss { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
         .btn-missed-buy { background: rgba(59, 130, 246, 0.2); color: var(--primary); }
@@ -81,7 +78,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Momentum Engine</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Restored Logic</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
@@ -129,12 +126,12 @@
                         <span id="livePrice" class="monitor-val">---</span>
                     </div>
                     <div class="monitor-box">
-                        <span class="monitor-label">Strategy: Trend</span>
+                        <span class="monitor-label">Strategy: SMC</span>
                         <span id="btcTrend" class="monitor-val">---</span>
                     </div>
                     <div class="monitor-box">
-                        <span class="monitor-label">Status</span>
-                        <span id="volStatus" class="monitor-val">Scanning</span>
+                        <span class="monitor-label">Order Book Bias</span>
+                        <span id="obStatus" class="monitor-val">Scanning</span>
                     </div>
                 </div>
 
@@ -148,7 +145,7 @@
                         <div id="obAsks" class="ob-asks" style="width: 50%"></div>
                     </div>
                     <div style="text-align:center; font-size:0.7rem; color:var(--muted); margin-top:5px;">
-                        Real-Time Order Book Imbalance
+                        Real-Time Order Book (Authority Restored)
                     </div>
                 </div>
             </div>
@@ -157,7 +154,7 @@
                 <div class="card" style="border-left: 4px solid var(--primary);">
                     <h3>Prediction Feed</h3>
                     <p style="color:var(--muted); font-size:0.9rem;">
-                        Signals generated 1 second <strong>AFTER</strong> candle close for maximum data accuracy.
+                        Analyzing Closed Candles + Order Book + SMC Wicks.
                     </p>
                 </div>
                 <div id="predictionFeed" class="session-feed"></div>
@@ -168,9 +165,6 @@
         <div id="learningTab" class="tab-content">
             <div class="card">
                 <h3>AI Adaptation</h3>
-                <p style="color:var(--muted); font-size:0.9rem;">
-                    The AI penalizes patterns that cause losses and boosts patterns that were missed.
-                </p>
                 <div id="blacklistContainer" style="margin-top:15px;"></div>
             </div>
             <div class="card">
@@ -196,7 +190,7 @@
     </div>
 
     <script>
-        class TwoTMomentum {
+        class TwoTRestored {
             constructor() {
                 this.symbol = 'BTCUSDT';
                 this.timeframe = '1m';
@@ -229,14 +223,10 @@
                     const end = Date.now();
                     this.timeOffset = (data.serverTime - end) + ((end - start) / 2);
                     console.log('Time Offset:', this.timeOffset);
-                } catch (e) {
-                    console.log('Using local time');
-                }
+                } catch (e) { console.log('Local Time'); }
             }
 
-            getCorrectTime() {
-                return Date.now() + this.timeOffset;
-            }
+            getCorrectTime() { return Date.now() + this.timeOffset; }
 
             // ============ 2. LIVE MONITOR ============
             startLiveMonitor() {
@@ -267,10 +257,11 @@
                     document.getElementById('obAsks').style.width = `${100 - bidPct}%`;
                     document.getElementById('bidPct').innerText = `${bidPct.toFixed(0)}% Buys`;
                     document.getElementById('askPct').innerText = `${(100 - bidPct).toFixed(0)}% Sells`;
+                    
+                    const obStatus = bidPct > 55 ? "Bids > Asks" : bidPct < 45 ? "Asks > Bids" : "Neutral";
+                    document.getElementById('obStatus').innerText = obStatus;
 
-                } catch (e) {
-                    document.getElementById('connectionStatus').innerText = 'Reconnecting...';
-                }
+                } catch (e) { document.getElementById('connectionStatus').innerText = 'Reconnecting...'; }
             }
 
             updateCountdown() {
@@ -279,14 +270,12 @@
                 const intervalMs = map[this.timeframe] || 3600000;
                 
                 const timeToNext = intervalMs - (now % intervalMs);
-                
                 const seconds = Math.floor((timeToNext / 1000) % 60);
                 const minutes = Math.floor((timeToNext / 1000 / 60));
                 document.getElementById('countdown').innerText = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
 
-                // TRIGGER LOGIC: 1 SECOND AFTER OPEN
+                // TRIGGER 1s AFTER OPEN
                 const timePassed = intervalMs - timeToNext;
-                
                 if (this.isSessionActive && timePassed > 1000 && timePassed < 3000) {
                     if (!this.processing) {
                         this.processing = true;
@@ -305,39 +294,34 @@
                 
                 if(this.isSessionActive) {
                     startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block'; area.style.display = 'flex';
-                    
                     const now = this.getCorrectTime();
                     const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
                     const intervalMs = map[this.timeframe] || 3600000;
                     const currentCandleStart = now - (now % intervalMs);
-                    
                     this.generateSignal(currentCandleStart);
                 } else {
                     startBtn.style.display = 'inline-block'; stopBtn.style.display = 'none';
                 }
             }
 
-            // ============ 3. LOGIC ENGINE (MOMENTUM REWRITE) ============
+            // ============ 3. LOGIC ENGINE (RESTORED SMC + OB) ============
             async generateSignal(targetTimeMs) {
                 const feed = document.getElementById('predictionFeed');
                 const loadId = 'loading-' + Date.now();
-                
                 if(document.getElementById('predictionFeed').childElementCount > 50) document.getElementById('predictionFeed').lastChild.remove();
                 
                 const dateObj = new Date(targetTimeMs);
                 const targetTimeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Analyzing Momentum...</span></div>`);
+                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Logic: SMC + OB + Reversion...</span></div>`);
 
                 try {
                     const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=100`);
                     const data = await res.json();
                     const klines = this.formatKlines(data);
+                    const finishedKlines = klines.slice(0, -1); // Use closed data
                     
-                    // *** KEY CHANGE: USE FINISHED DATA ***
-                    const finishedKlines = klines.slice(0, -1); 
-                    
-                    // BTC FILTER (Using Finished Data)
+                    // BTC FILTER
                     let btcTrend = 'NEUTRAL';
                     if (this.symbol !== 'BTCUSDT') {
                         try {
@@ -351,79 +335,76 @@
                     document.getElementById('btcTrend').innerText = btcTrend;
                     document.getElementById('btcTrend').style.color = btcTrend === 'BULLISH' ? 'var(--success)' : 'var(--danger)';
 
-                    // METRICS
-                    const vwap = this.calculateVWAP(finishedKlines);
+                    // CALCULATIONS
                     const rsi = this.calculateRSI(finishedKlines);
-                    const chop = this.calculateChoppiness(finishedKlines);
+                    const bb = this.calculateBollinger(finishedKlines);
                     const atr = this.calculateATR(finishedKlines);
-                    const closePrice = finishedKlines[finishedKlines.length-1].close; // Close of Candle that just finished
+                    const closePrice = finishedKlines[finishedKlines.length-1].close;
+                    
+                    // 1. RESTORED: SMC Sweep Detection
+                    const sweep = this.detectSweep(finishedKlines); // "Bullish Sweep" or "Bearish Sweep"
 
-                    // SNAPSHOT
+                    // 2. RESTORED: Order Book Width
+                    const bidWidth = parseFloat(document.getElementById('obBids').style.width) || 50;
+
+                    // SNAPSHOT (Learning)
                     const snapshot = {
                         btcTrend,
                         rsiState: rsi > 70 ? 'Over' : rsi < 30 ? 'Under' : 'Mid',
-                        chopState: chop > 60 ? 'High' : 'Low'
+                        obState: bidWidth > 55 ? 'BuyHeavy' : bidWidth < 45 ? 'SellHeavy' : 'Balanced'
                     };
 
                     // PENALTY
                     let penalty = 0;
-                    const isMistake = this.blacklist.some(b => 
-                        b.btcTrend === snapshot.btcTrend && 
-                        b.rsiState === snapshot.rsiState &&
-                        b.chopState === snapshot.chopState
-                    );
+                    const isMistake = this.blacklist.some(b => b.btcTrend === snapshot.btcTrend && b.rsiState === snapshot.rsiState);
                     if(isMistake) penalty = 0.2; 
 
-                    // *** NEW SCORING (MOMENTUM FLIP) ***
+                    // *** RESTORED SCORING SYSTEM (PHASE 3 LOGIC) ***
                     let score = 0;
                     let reasons = [];
 
-                    // 1. Trend (VWAP) - 50% (Entry on Strength)
-                    if(closePrice > vwap) { score += 0.5; reasons.push("Above VWAP (Trend Up)"); }
-                    else { score -= 0.5; reasons.push("Below VWAP (Trend Down)"); }
+                    // A. Order Book (Significant Weight Restored)
+                    if(bidWidth > 55) { score += 0.25; reasons.push("Order Book: Buyers Dominating"); }
+                    else if(bidWidth < 45) { score -= 0.25; reasons.push("Order Book: Sellers Dominating"); }
 
-                    // 2. RSI (MOMENTUM) - 30% - INVERTED LOGIC
-                    // Old logic sold high RSI. New logic Buys strength (unless crazy high)
-                    if(rsi > 55 && rsi < 85) { score += 0.3; reasons.push("RSI Strong Momentum"); }
-                    else if(rsi < 45 && rsi > 15) { score -= 0.3; reasons.push("RSI Bearish Momentum"); }
-                    else if(rsi >= 85) { score -= 0.2; reasons.push("RSI Overextended (Extreme)"); } // Safety
-                    else if(rsi <= 15) { score += 0.2; reasons.push("RSI Oversold (Extreme)"); } // Safety
+                    // B. SMC Sweeps (High Probability)
+                    if(sweep === 'Bullish Sweep') { score += 0.4; reasons.push("SMC: Bullish Liquidity Sweep"); }
+                    if(sweep === 'Bearish Sweep') { score -= 0.4; reasons.push("SMC: Bearish Liquidity Sweep"); }
 
-                    // 3. Order Book - 5% (Demoted to Noise)
-                    const bidWidth = parseFloat(document.getElementById('obBids').style.width) || 50;
-                    if(bidWidth > 60) { score += 0.05; }
-                    else if(bidWidth < 40) { score -= 0.05; }
+                    // C. Bollinger Reversion (The 70% Accuracy Logic)
+                    if(closePrice < bb.lower) { score += 0.3; reasons.push("Price Outside Lower BB (Oversold)"); }
+                    if(closePrice > bb.upper) { score -= 0.3; reasons.push("Price Outside Upper BB (Overbought)"); }
 
-                    // 4. BTC - 15%
-                    if(btcTrend === 'BULLISH') score += 0.15;
-                    if(btcTrend === 'BEARISH') score -= 0.15;
+                    // D. RSI (Reversion Logic Restored)
+                    // RSI < 30 is GOOD for Buy. RSI > 70 is GOOD for Sell.
+                    if(rsi < 30) { score += 0.2; reasons.push("RSI Oversold (<30)"); }
+                    if(rsi > 70) { score -= 0.2; reasons.push("RSI Overbought (>70)"); }
+
+                    // E. BTC Alignment
+                    if(btcTrend === 'BULLISH') score += 0.1;
+                    if(btcTrend === 'BEARISH') score -= 0.1;
 
                     if(penalty > 0) {
-                        if(score > 0) score -= penalty;
-                        if(score < 0) score += penalty;
-                        reasons.push(`⚠ Reduced Confidence (Past Failure)`);
+                        if(score > 0) score -= penalty; else score += penalty;
+                        reasons.push(`⚠ Learning Penalty Applied`);
                     }
 
                     // DECISION
                     let signal = 'HOLD';
                     let type = 'HOLD';
 
-                    if(chop > 65) {
-                        reasons.push("Market Too Choppy");
-                        score = 0; 
-                    }
+                    // Logic: We need Score > 0.3 to trade (Confluence)
+                    if(score >= 0.3) { signal = 'BUY'; type = 'BUY'; }
+                    else if(score <= -0.3) { signal = 'SELL'; type = 'SELL'; }
 
-                    if(score >= 0.25) { signal = 'BUY'; type = 'BUY'; }
-                    else if(score <= -0.25) { signal = 'SELL'; type = 'SELL'; }
-
-                    // RISK (Swing Targets)
+                    // RISK
                     let stopLoss = 0, takeProfit = 0;
                     if(signal === 'BUY') {
-                        stopLoss = closePrice - (atr * 2); // Wider Stop
-                        takeProfit = closePrice + (atr * 4); // Target the Swing
+                        stopLoss = closePrice - (atr * 1.5);
+                        takeProfit = closePrice + (atr * 2.5);
                     } else if(signal === 'SELL') {
-                        stopLoss = closePrice + (atr * 2);
-                        takeProfit = closePrice - (atr * 4);
+                        stopLoss = closePrice + (atr * 1.5);
+                        takeProfit = closePrice - (atr * 2.5);
                     }
 
                     document.getElementById(loadId).remove();
@@ -438,7 +419,6 @@
             // ============ 4. UI & DATA ============
             renderCard(signal, type, price, conf, reasons, snapshot, sl, tp, timeStr) {
                 const id = Date.now();
-                
                 const record = { id, time: timeStr, symbol: this.symbol, type, price, status: 'Pending', snapshot };
                 this.history.unshift(record);
                 localStorage.setItem('twot_history', JSON.stringify(this.history));
@@ -467,7 +447,7 @@
                         
                         ${(type === 'BUY' || type === 'SELL') ? `
                         <div class="risk-grid">
-                            <div>Open<br><strong>$${price.toFixed(2)}</strong></div>
+                            <div>Ref<br><strong>$${price.toFixed(2)}</strong></div>
                             <div>SL<br><strong style="color:var(--danger)">$${sl.toFixed(2)}</strong></div>
                             <div>TP<br><strong style="color:var(--success)">$${tp.toFixed(2)}</strong></div>
                         </div>
@@ -508,9 +488,7 @@
 
                 if(result === 'Loss') {
                     const exists = this.blacklist.some(b => b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState);
-                    if(!exists) {
-                        this.blacklist.push({ ...snap, count: 1 });
-                    }
+                    if(!exists) this.blacklist.push({ ...snap, count: 1 });
                 } else if (result.includes('Missed')) {
                     const initLen = this.blacklist.length;
                     this.blacklist = this.blacklist.filter(b => !(b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState));
@@ -558,9 +536,22 @@
             formatKlines(d) { return d.map(k => ({time:k[0], open:parseFloat(k[1]), high:parseFloat(k[2]), low:parseFloat(k[3]), close:parseFloat(k[4]), volume:parseFloat(k[5])})); }
             calculateSMA(d, p) { if(d.length<p)return d[0].close; return d.slice(-p).reduce((a,b)=>a+b.close,0)/p; }
             calculateRSI(d) { let g=0,l=0; for(let i=d.length-14;i<d.length;i++){const x=d[i].close-d[i-1].close; x>0?g+=x:l-=x;} return 100-(100/(1+(g/14)/(l/14||1))); }
-            calculateVWAP(d) { let pv=0,v=0; for(let i=d.length-20;i<d.length;i++){pv+=((d[i].high+d[i].low+d[i].close)/3)*d[i].volume; v+=d[i].volume;} return pv/v; }
             calculateATR(d) { let t=0; for(let i=1;i<d.length;i++) t+=Math.abs(d[i].close-d[i-1].close); return t/d.length; }
-            calculateChoppiness(d) { const n=14; if(d.length<n+1)return 50; const s=d.slice(-n); let tr=0,mh=s[0].high,ml=s[0].low; for(let i=1;i<s.length;i++){const h=s[i].high,l=s[i].low,pc=s[i-1].close; tr+=Math.max(h-l,Math.abs(h-pc),Math.abs(l-pc)); if(h>mh)mh=h; if(l<ml)ml=l;} return 100*Math.log10(tr/(mh-ml))/Math.log10(n); }
+            
+            // RESTORED INDICATORS
+            calculateBollinger(d) { 
+                const sl=d.slice(-20); const sma=sl.reduce((a,b)=>a+b.close,0)/20; 
+                const sd=Math.sqrt(sl.reduce((a,b)=>a+Math.pow(b.close-sma,2),0)/20); 
+                return { upper:sma+(2*sd), lower:sma-(2*sd) }; 
+            }
+            detectSweep(klines) {
+                const recent = klines.slice(-5);
+                const current = recent[recent.length-1];
+                const prev = recent[recent.length-2];
+                if (current.low < prev.low && current.close > prev.low) return 'Bullish Sweep';
+                if (current.high > prev.high && current.close < prev.high) return 'Bearish Sweep';
+                return null;
+            }
 
             setupUI() {
                 document.getElementById('startBtn').onclick = () => this.toggleSession();
@@ -573,7 +564,7 @@
                 });
             }
         }
-        const app = new TwoTMomentum();
+        const app = new TwoTRestored();
     </script>
 </body>
 </html>
