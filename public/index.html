@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>TwoT AI - Post-Close Precision</title>
+    <title>TwoT AI - Momentum Engine</title>
     <style>
         /* --- DARK THEME --- */
         :root { --bg: #0f172a; --card: #1e293b; --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --text: #f8fafc; --muted: #94a3b8; }
@@ -81,7 +81,7 @@
     <header>
         <div class="container">
             <div class="header-content">
-                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Post-Close Engine</span></h1>
+                <h1>TwoT AI <span style="font-size:0.8rem; color:var(--primary);">Momentum Engine</span></h1>
                 <div class="controls">
                     <select id="symbolSelect">
                         <option value="BTCUSDT">BTC/USDT</option>
@@ -129,12 +129,12 @@
                         <span id="livePrice" class="monitor-val">---</span>
                     </div>
                     <div class="monitor-box">
-                        <span class="monitor-label">Quant: BTC Trend</span>
+                        <span class="monitor-label">Strategy: Trend</span>
                         <span id="btcTrend" class="monitor-val">---</span>
                     </div>
                     <div class="monitor-box">
-                        <span class="monitor-label">Quant: Volatility</span>
-                        <span id="volStatus" class="monitor-val">Normal</span>
+                        <span class="monitor-label">Status</span>
+                        <span id="volStatus" class="monitor-val">Scanning</span>
                     </div>
                 </div>
 
@@ -196,7 +196,7 @@
     </div>
 
     <script>
-        class TwoTPrecision {
+        class TwoTMomentum {
             constructor() {
                 this.symbol = 'BTCUSDT';
                 this.timeframe = '1m';
@@ -280,19 +280,16 @@
                 
                 const timeToNext = intervalMs - (now % intervalMs);
                 
-                // Timer display logic
                 const seconds = Math.floor((timeToNext / 1000) % 60);
                 const minutes = Math.floor((timeToNext / 1000 / 60));
                 document.getElementById('countdown').innerText = `${minutes}:${seconds < 10 ? '0'+seconds : seconds}`;
 
-                // TRIGGER LOGIC: 1 SECOND AFTER OPEN (timeToNext approx intervalMs - 1000)
-                // Or simpler: Time passed since open = intervalMs - timeToNext
+                // TRIGGER LOGIC: 1 SECOND AFTER OPEN
                 const timePassed = intervalMs - timeToNext;
                 
                 if (this.isSessionActive && timePassed > 1000 && timePassed < 3000) {
                     if (!this.processing) {
                         this.processing = true;
-                        // We analyze NOW for the candle that JUST started
                         const currentCandleTime = now - timePassed; 
                         this.generateSignal(currentCandleTime);
                         setTimeout(() => this.processing = false, 5000); 
@@ -309,7 +306,6 @@
                 if(this.isSessionActive) {
                     startBtn.style.display = 'none'; stopBtn.style.display = 'inline-block'; area.style.display = 'flex';
                     
-                    // IMMEDIATE START Logic
                     const now = this.getCorrectTime();
                     const map = {'1m':60000, '5m':300000, '15m':900000, '1h':3600000, '4h':14400000, '1d':86400000};
                     const intervalMs = map[this.timeframe] || 3600000;
@@ -321,7 +317,7 @@
                 }
             }
 
-            // ============ 3. LOGIC ENGINE ============
+            // ============ 3. LOGIC ENGINE (MOMENTUM REWRITE) ============
             async generateSignal(targetTimeMs) {
                 const feed = document.getElementById('predictionFeed');
                 const loadId = 'loading-' + Date.now();
@@ -331,16 +327,14 @@
                 const dateObj = new Date(targetTimeMs);
                 const targetTimeStr = dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
-                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Calculating for ${targetTimeStr}...</span></div>`);
+                feed.insertAdjacentHTML('afterbegin', `<div id="${loadId}" class="prediction-card"><span class="blink">Analyzing Momentum...</span></div>`);
 
                 try {
                     const res = await fetch(`/proxy/klines?symbol=${this.symbol}&interval=${this.timeframe}&limit=100`);
                     const data = await res.json();
                     const klines = this.formatKlines(data);
                     
-                    // === DATA INTEGRITY FIX ===
-                    // Remove the last candle because it is "Moving" (Not Closed)
-                    // We want to predict the NEW candle based on COMPLETED history
+                    // *** KEY CHANGE: USE FINISHED DATA ***
                     const finishedKlines = klines.slice(0, -1); 
                     
                     // BTC FILTER (Using Finished Data)
@@ -349,7 +343,7 @@
                         try {
                             const bRes = await fetch(`/proxy/klines?symbol=BTCUSDT&interval=${this.timeframe}&limit=50`);
                             const bData = await bRes.json();
-                            const bKlines = this.formatKlines(bData).slice(0, -1); // Remove moving candle
+                            const bKlines = this.formatKlines(bData).slice(0, -1);
                             const bSma = this.calculateSMA(bKlines, 20);
                             btcTrend = bKlines[bKlines.length-1].close > bSma ? 'BULLISH' : 'BEARISH';
                         } catch(e) {}
@@ -357,12 +351,12 @@
                     document.getElementById('btcTrend').innerText = btcTrend;
                     document.getElementById('btcTrend').style.color = btcTrend === 'BULLISH' ? 'var(--success)' : 'var(--danger)';
 
-                    // METRICS (On Finished Data)
+                    // METRICS
                     const vwap = this.calculateVWAP(finishedKlines);
                     const rsi = this.calculateRSI(finishedKlines);
                     const chop = this.calculateChoppiness(finishedKlines);
                     const atr = this.calculateATR(finishedKlines);
-                    const closePrice = finishedKlines[finishedKlines.length-1].close; // Last closed price
+                    const closePrice = finishedKlines[finishedKlines.length-1].close; // Close of Candle that just finished
 
                     // SNAPSHOT
                     const snapshot = {
@@ -380,22 +374,29 @@
                     );
                     if(isMistake) penalty = 0.2; 
 
-                    // SCORING
+                    // *** NEW SCORING (MOMENTUM FLIP) ***
                     let score = 0;
                     let reasons = [];
 
-                    if(closePrice > vwap) { score += 0.5; reasons.push("Trend: Bullish (Above VWAP)"); }
-                    else { score -= 0.5; reasons.push("Trend: Bearish (Below VWAP)"); }
+                    // 1. Trend (VWAP) - 50% (Entry on Strength)
+                    if(closePrice > vwap) { score += 0.5; reasons.push("Above VWAP (Trend Up)"); }
+                    else { score -= 0.5; reasons.push("Below VWAP (Trend Down)"); }
 
+                    // 2. RSI (MOMENTUM) - 30% - INVERTED LOGIC
+                    // Old logic sold high RSI. New logic Buys strength (unless crazy high)
+                    if(rsi > 55 && rsi < 85) { score += 0.3; reasons.push("RSI Strong Momentum"); }
+                    else if(rsi < 45 && rsi > 15) { score -= 0.3; reasons.push("RSI Bearish Momentum"); }
+                    else if(rsi >= 85) { score -= 0.2; reasons.push("RSI Overextended (Extreme)"); } // Safety
+                    else if(rsi <= 15) { score += 0.2; reasons.push("RSI Oversold (Extreme)"); } // Safety
+
+                    // 3. Order Book - 5% (Demoted to Noise)
                     const bidWidth = parseFloat(document.getElementById('obBids').style.width) || 50;
-                    if(bidWidth > 55) { score += 0.2; reasons.push("OB: Buying Pressure"); }
-                    else if(bidWidth < 45) { score -= 0.2; reasons.push("OB: Selling Pressure"); }
+                    if(bidWidth > 60) { score += 0.05; }
+                    else if(bidWidth < 40) { score -= 0.05; }
 
-                    if(rsi < 40) { score += 0.2; reasons.push("Momentum: Buy Zone"); }
-                    else if(rsi > 60) { score -= 0.2; reasons.push("Momentum: Sell Zone"); }
-
-                    if(btcTrend === 'BULLISH') score += 0.2;
-                    if(btcTrend === 'BEARISH') score -= 0.2;
+                    // 4. BTC - 15%
+                    if(btcTrend === 'BULLISH') score += 0.15;
+                    if(btcTrend === 'BEARISH') score -= 0.15;
 
                     if(penalty > 0) {
                         if(score > 0) score -= penalty;
@@ -403,7 +404,7 @@
                         reasons.push(`⚠ Reduced Confidence (Past Failure)`);
                     }
 
-                    // DECISION (Tighter Threshold for Accuracy)
+                    // DECISION
                     let signal = 'HOLD';
                     let type = 'HOLD';
 
@@ -412,18 +413,17 @@
                         score = 0; 
                     }
 
-                    // Updated Threshold: 0.35 ensures better quality
-                    if(score >= 0.35) { signal = 'BUY'; type = 'BUY'; }
-                    else if(score <= -0.35) { signal = 'SELL'; type = 'SELL'; }
+                    if(score >= 0.25) { signal = 'BUY'; type = 'BUY'; }
+                    else if(score <= -0.25) { signal = 'SELL'; type = 'SELL'; }
 
-                    // RISK
+                    // RISK (Swing Targets)
                     let stopLoss = 0, takeProfit = 0;
                     if(signal === 'BUY') {
-                        stopLoss = closePrice - (atr * 1.5);
-                        takeProfit = closePrice + (atr * 2.5);
+                        stopLoss = closePrice - (atr * 2); // Wider Stop
+                        takeProfit = closePrice + (atr * 4); // Target the Swing
                     } else if(signal === 'SELL') {
-                        stopLoss = closePrice + (atr * 1.5);
-                        takeProfit = closePrice - (atr * 2.5);
+                        stopLoss = closePrice + (atr * 2);
+                        takeProfit = closePrice - (atr * 4);
                     }
 
                     document.getElementById(loadId).remove();
@@ -507,13 +507,11 @@
                 const snap = this.history[idx].snapshot;
 
                 if(result === 'Loss') {
-                    // ADD PENALTY - Don't delete anything
                     const exists = this.blacklist.some(b => b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState);
                     if(!exists) {
                         this.blacklist.push({ ...snap, count: 1 });
                     }
                 } else if (result.includes('Missed')) {
-                    // REMOVE PENALTY Logic: Only remove if matches perfectly
                     const initLen = this.blacklist.length;
                     this.blacklist = this.blacklist.filter(b => !(b.btcTrend === snap.btcTrend && b.rsiState === snap.rsiState));
                     if(this.blacklist.length < initLen) alert("AI Adjusted: Penalty Removed.");
@@ -575,7 +573,7 @@
                 });
             }
         }
-        const app = new TwoTPrecision();
+        const app = new TwoTMomentum();
     </script>
 </body>
 </html>
